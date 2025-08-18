@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("productos")
+=======
+@RequestMapping("producto")
 public class ProductoController {
 
     @Autowired
@@ -65,6 +67,9 @@ public class ProductoController {
         if (productosDTO.isEmpty()) {
             throw new ProductoNotFoundException("No hay productos cargados");
         }
+=======
+        Page<ProductoDTO> productosDTO = productos.map(ProductoDTO::new);
+main
         return ResponseEntity.ok(productosDTO);
     }
 
@@ -123,6 +128,9 @@ public class ProductoController {
     }
 
     // Versión con query params: /productos/precio?precioMax=...&precioMin=...
+=======
+    // Versión con query params: /producto/precio?precioMax=...&precioMin=...
+ main
     @GetMapping("/precio")
     public ResponseEntity<ProductoDTO> getProductoByPrecio(
             @RequestParam(required = false) BigDecimal precioMax,

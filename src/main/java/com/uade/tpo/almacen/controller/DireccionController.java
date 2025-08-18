@@ -55,7 +55,8 @@ public class DireccionController {
         Optional<Usuario> usuarioOpt = usuarioService.getUsuarioByUsername(username);
         if (!usuarioOpt.isPresent()) return ResponseEntity.status(401).build();
         Optional<Direccion> dirOpt = direccionService.getDireccionById(id);
-        if (!dirOpt.isPresent() || dirOpt.get().getUsuario().getId() != usuarioOpt.get().getId())
+        if (!dirOpt.isPresent()) return ResponseEntity.status(404).build();
+        if (dirOpt.get().getUsuario().getId() != usuarioOpt.get().getId())
             return ResponseEntity.status(403).build();
         direccion.setId(id);
         direccion.setUsuario(usuarioOpt.get());
@@ -71,7 +72,8 @@ public class DireccionController {
         Optional<Usuario> usuarioOpt = usuarioService.getUsuarioByUsername(username);
         if (!usuarioOpt.isPresent()) return ResponseEntity.status(401).build();
         Optional<Direccion> dirOpt = direccionService.getDireccionById(id);
-        if (!dirOpt.isPresent() || dirOpt.get().getUsuario().getId() != usuarioOpt.get().getId())
+        if (!dirOpt.isPresent()) return ResponseEntity.status(404).build();
+        if (dirOpt.get().getUsuario().getId() != usuarioOpt.get().getId())
             return ResponseEntity.status(403).build();
         direccionService.deleteDireccion(id);
         return ResponseEntity.noContent().build();

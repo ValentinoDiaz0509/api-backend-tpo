@@ -11,10 +11,18 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DetalleOrden {
+public class ItemCarrito {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "carrito_id")
+    private Carrito carrito;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "producto_id")
+    private Producto producto;
 
     @Column(nullable = false)
     private int cantidad;
@@ -24,17 +32,6 @@ public class DetalleOrden {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
-
-    @ManyToOne
-    @JoinColumn(name = "orden_id", nullable = false)
-    private Orden orden;
-
-    @ManyToOne
-    @JoinColumn(name = "producto_id", nullable = false)
-    private Producto producto;
-
-    @Builder.Default
-    private BigDecimal calculado = BigDecimal.ZERO;
 
     @PrePersist
     @PreUpdate

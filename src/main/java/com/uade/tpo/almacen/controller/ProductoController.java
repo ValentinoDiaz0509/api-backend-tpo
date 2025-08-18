@@ -24,8 +24,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
+
+=======
 @RequestMapping("productos")
 =======
+ main
 @RequestMapping("producto")
 public class ProductoController {
 
@@ -57,6 +60,9 @@ public class ProductoController {
             throw new ProductoNotFoundException("No hay productos que coincidan con los filtros");
         }
 
+
+        Page<ProductoDTO> productosDTO = productos.map(ProductoDTO::new);
+=======
         var list = productos.stream()
                 .filter(p -> p.getStock() > p.getStockMinimo() && "activo".equals(p.getEstado()))
                 .map(ProductoDTO::new)
@@ -70,6 +76,7 @@ public class ProductoController {
 =======
         Page<ProductoDTO> productosDTO = productos.map(ProductoDTO::new);
 main
+ main
         return ResponseEntity.ok(productosDTO);
     }
 
@@ -127,9 +134,13 @@ main
         throw new ProductoNotFoundException("No se encontró el producto con marca: " + marca);
     }
 
+
+    // Versión con query params: /producto/precio?precioMax=...&precioMin=...
+=======
     // Versión con query params: /productos/precio?precioMax=...&precioMin=...
 =======
     // Versión con query params: /producto/precio?precioMax=...&precioMin=...
+ main
  main
     @GetMapping("/precio")
     public ResponseEntity<ProductoDTO> getProductoByPrecio(

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -103,8 +104,6 @@ public class UsuarioController {
                 usuarioExistente.setUsername(usuarioPatch.getUsername());
             if (usuarioPatch.getEmail() != null)
                 usuarioExistente.setEmail(usuarioPatch.getEmail());
-            if (usuarioPatch.getPassword() != null)
-                usuarioExistente.setPassword(usuarioPatch.getPassword());
             if (usuarioPatch.getNombre() != null)
                 usuarioExistente.setNombre(usuarioPatch.getNombre());
             if (usuarioPatch.getApellido() != null)
@@ -118,20 +117,6 @@ public class UsuarioController {
         }
     }
 
-    // cambiar la contrasena de un usuario no auteticador por email
-    @PutMapping("/cambiar-password")
-    public ResponseEntity<String> cambiarPasswordPorEmail(@RequestParam String email,
-            @RequestBody PasswordChangeRequest passwordChangeRequest) {
-        Optional<Usuario> usuarioOpt = usuarioService.getUsuarioByEmail(email);
-        if (!usuarioOpt.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado.");
-        }
-        Usuario usuario = usuarioOpt.get();
-        usuario.setPassword(passwordChangeRequest.getNuevaContrasena());
-        usuarioService.createOrUpdateUsuario(usuario);
-        return ResponseEntity.ok("La contraseña fue actualizada correctamente.");
-    }
-
     // Cambiar la contraseña del usuario autenticado
     @PutMapping("/password")
     public ResponseEntity<String> cambiarPassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
@@ -142,11 +127,13 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado.");
         }
         Usuario usuario = usuarioOpt.get();
-        // Verifica la contraseña actual
-        if (!usuario.getPassword().equals(passwordChangeRequest.getContrasenaActual())) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        boolean currentMatches = usuario.getPassword().equals(passwordChangeRequest.getContrasenaActual())
+                || passwordEncoder.matches(passwordChangeRequest.getContrasenaActual(), usuario.getPassword());
+        if (!currentMatches) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La contraseña actual es incorrecta.");
         }
-        usuario.setPassword(passwordChangeRequest.getNuevaContrasena());
+        usuario.setPassword(passwordEncoder.encode(passwordChangeRequest.getNuevaContrasena()));
         usuarioService.createOrUpdateUsuario(usuario);
         return ResponseEntity.ok("La contraseña fue actualizada correctamente.");
     }
@@ -202,7 +189,8 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario o contraseña incorrectos.");
         }
         Usuario usuario = usuarioOpt.get();
-        if (!usuario.getPassword().equals(loginRequest.getPassword())) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if (!passwordEncoder.matches(loginRequest.getPassword(), usuario.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario o contraseña incorrectos.");
         }
         // Generar JWT

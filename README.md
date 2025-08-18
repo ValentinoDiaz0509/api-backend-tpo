@@ -1,4 +1,4 @@
-# TP Grupo 04: Supermercado
+# TP Grupo 13: ALMACEN
 
 ## Endpoints de Usuario
 > Todos los endpoints (excepto login y registro) requieren autenticación JWT.  

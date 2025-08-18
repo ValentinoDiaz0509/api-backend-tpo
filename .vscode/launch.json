@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "SupermercadoApplication",
+            "request": "launch",
+            "mainClass": "SupermercadoApplication",
+            "projectName": "supermercado"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SupermercadoApplication<supermercado>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.uade.tpo.supermercado.SupermercadoApplication",
+            "projectName": "supermercado",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

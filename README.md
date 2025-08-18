@@ -363,7 +363,7 @@ Errores: No existe la categoria que se quiere actualizar
 
 ## Endpoints de Producto
 
-### GET /producto
+
 
 Permite filtrar productos por cualquier combinación de los siguientes parámetros (todos opcionales):
 
@@ -377,8 +377,8 @@ Permite filtrar productos por cualquier combinación de los siguientes parámetr
 
 **Ejemplo:**
 ```
-GET /producto?nombre=leche&marca=LaSerenisima&categoriaId=2&precioMin=100&precioMax=200&page=0&size=10
-```
+
+
 
 Devuelve una página de productos que cumplen con todos los filtros.
 

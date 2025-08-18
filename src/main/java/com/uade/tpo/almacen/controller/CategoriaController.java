@@ -73,11 +73,7 @@ public class CategoriaController {
         }
 
         Categoria newCategory = categoriaService.createCategory(categoryRequest);
-
         return ResponseEntity.created(URI.create("/categories/" + newCategory.getId())).body(newCategory);
-=======
-        return ResponseEntity.created(URI.create("/categorias/" + newCategory.getId())).body(newCategory);
- main
     }
 
     @DeleteMapping

@@ -1,16 +1,13 @@
 package com.uade.tpo.almacen.entity.dto;
 
+import java.io.Serializable;
 import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
-@Data
-@NoArgsConstructor          // genera constructor vacío
-@AllArgsConstructor        // genera constructor con todos los campos
-public class CarritoResponse {
-    private int id;
-    private String estado;
-    private List<ItemCarritoDTO> items;
-    private double total;
-}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record CarritoResponse(
+    @JsonProperty("id") int id,
+    @JsonProperty("estado") String estado,
+    @JsonProperty("items") List<ItemCarritoDTO> items,
+    @JsonProperty("total") double total
+) implements Serializable {}

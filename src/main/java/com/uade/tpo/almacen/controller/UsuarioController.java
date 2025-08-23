@@ -44,7 +44,7 @@ public class UsuarioController {
             this.nombre = u.getNombre();
             this.apellido = u.getApellido();
             this.rol = u.getRol();
-            this.fecha_registro = u.getFecha_registro();
+            this.fecha_registro = u.getFechaRegistro();
         }
     }
 

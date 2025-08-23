@@ -1,8 +1,8 @@
-package com.uade.tpo.almacen.entity.dto;
+package com.uade.tpo.almacen.dto;
 
 import java.math.BigDecimal;
 
-public record ItemOrdenDTO(
+public record ItemCarritoDTO(
         int productoId,
         String nombreProducto,
         int cantidad,

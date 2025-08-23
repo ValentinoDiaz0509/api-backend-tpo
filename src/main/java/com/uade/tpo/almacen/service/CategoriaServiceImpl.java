@@ -1,7 +1,7 @@
 package com.uade.tpo.almacen.service;
 
 import com.uade.tpo.almacen.entity.Categoria;
-import com.uade.tpo.almacen.entity.dto.CategoryRequest;
+import com.uade.tpo.almacen.dto.CategoryRequest;
 import com.uade.tpo.almacen.repository.CategoriaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

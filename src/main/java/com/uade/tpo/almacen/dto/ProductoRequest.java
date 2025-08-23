@@ -1,4 +1,4 @@
-package com.uade.tpo.almacen.entity.dto;
+package com.uade.tpo.almacen.dto;
 
 import lombok.Data;
 import java.math.BigDecimal;

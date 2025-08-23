@@ -3,7 +3,7 @@ package com.uade.tpo.almacen.service;
 import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.HistorialPrecio;
 import com.uade.tpo.almacen.entity.Producto;
-import com.uade.tpo.almacen.entity.dto.ProductoRequest; // <- DTO en entity.dto
+import com.uade.tpo.almacen.dto.ProductoRequest;
 import com.uade.tpo.almacen.repository.CategoriaRepository;
 import com.uade.tpo.almacen.repository.HistorialPrecioRepository;
 import com.uade.tpo.almacen.repository.ProductoRepository;

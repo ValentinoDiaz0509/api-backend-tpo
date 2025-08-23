@@ -2,7 +2,7 @@ package com.uade.tpo.almacen.controller;
 
 import com.uade.tpo.almacen.entity.Carrito;
 import com.uade.tpo.almacen.entity.Usuario;
-import com.uade.tpo.almacen.entity.dto.CarritoResponse;
+import com.uade.tpo.almacen.dto.CarritoResponse;
 import com.uade.tpo.almacen.excepciones.NoEncontradoException;
 import com.uade.tpo.almacen.mapper.CarritoMapper;
 import com.uade.tpo.almacen.service.CarritoService;

@@ -1,4 +1,4 @@
-package com.uade.tpo.almacen.controller.dto;
+package com.uade.tpo.almacen.dto;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

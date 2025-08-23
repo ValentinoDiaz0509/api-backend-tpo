@@ -1,4 +1,4 @@
-package com.uade.tpo.almacen.entity.dto;
+package com.uade.tpo.almacen.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

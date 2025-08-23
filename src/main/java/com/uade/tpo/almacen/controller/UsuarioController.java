@@ -5,9 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.uade.tpo.almacen.controller.dto.LoginJwtResponse;
-import com.uade.tpo.almacen.controller.dto.LoginRequest;
-import com.uade.tpo.almacen.controller.dto.UsuarioLoginResponse;
+import com.uade.tpo.almacen.dto.LoginJwtResponse;
+import com.uade.tpo.almacen.dto.LoginRequest;
+import com.uade.tpo.almacen.dto.UsuarioLoginResponse;
 import com.uade.tpo.almacen.entity.Usuario;
 import com.uade.tpo.almacen.security.JwtUtil;
 import com.uade.tpo.almacen.service.UsuarioService;

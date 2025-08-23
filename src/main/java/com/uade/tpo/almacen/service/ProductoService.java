@@ -2,7 +2,7 @@ package com.uade.tpo.almacen.service;
 
 import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.Producto;
-import com.uade.tpo.almacen.entity.dto.ProductoRequest;
+import com.uade.tpo.almacen.dto.ProductoRequest;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

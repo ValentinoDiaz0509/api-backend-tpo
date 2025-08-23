@@ -7,7 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.uade.tpo.almacen.entity.Categoria;
-import com.uade.tpo.almacen.controller.dto.CategoriaResponse; // ✅ DTO correcto
+import com.uade.tpo.almacen.dto.CategoriaResponse; // ✅ DTO correcto
+import com.uade.tpo.almacen.dto.CategoryRequest;
 import com.uade.tpo.almacen.excepciones.NoEncontradoException;
 import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
 import com.uade.tpo.almacen.service.CategoriaService;
@@ -63,7 +64,7 @@ public class CategoriaController {
 
     @PostMapping
     public ResponseEntity<Object> createCategory(
-            @RequestBody com.uade.tpo.almacen.entity.dto.CategoryRequest categoryRequest) {
+            @RequestBody CategoryRequest categoryRequest) {
 
         if (categoryRequest.getNombre() == null || categoryRequest.getNombre().trim().isEmpty()) {
             throw new ParametroFueraDeRangoException("El nombre de la categoría no puede estar vacío.");
@@ -97,7 +98,7 @@ public class CategoriaController {
 
     @PutMapping("/{categoriaID}")
     public ResponseEntity<Categoria> updateCategory(@PathVariable int categoriaID,
-            @RequestBody com.uade.tpo.almacen.entity.dto.CategoryRequest categoryRequest) {
+            @RequestBody CategoryRequest categoryRequest) {
         Categoria updatedCategory = categoriaService.updateCategory(categoriaID, categoryRequest);
         return ResponseEntity.ok(updatedCategory);
     }

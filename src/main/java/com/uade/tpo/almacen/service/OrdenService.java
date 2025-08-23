@@ -2,7 +2,7 @@ package com.uade.tpo.almacen.service;
 
 import com.uade.tpo.almacen.entity.Orden;
 import com.uade.tpo.almacen.entity.Usuario;
-import com.uade.tpo.almacen.entity.dto.OrdenResponseDTO;
+import com.uade.tpo.almacen.dto.OrdenResponseDTO;
 
 import java.util.List;
 

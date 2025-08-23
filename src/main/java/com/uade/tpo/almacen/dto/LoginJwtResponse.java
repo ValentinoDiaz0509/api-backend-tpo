@@ -1,4 +1,4 @@
-package com.uade.tpo.almacen.controller.dto;
+package com.uade.tpo.almacen.dto;
 
 public class LoginJwtResponse {
     private String token;

@@ -7,9 +7,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.uade.tpo.almacen.controller.dto.CatalogoResponse;
-import com.uade.tpo.almacen.controller.dto.ProductoDTO;
-import com.uade.tpo.almacen.entity.dto.ProductoRequest;
+import com.uade.tpo.almacen.dto.CatalogoResponse;
+import com.uade.tpo.almacen.dto.ProductoDTO;
+import com.uade.tpo.almacen.dto.ProductoRequest;
 import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.Producto;
 import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;

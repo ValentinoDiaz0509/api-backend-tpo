@@ -3,8 +3,8 @@ package com.uade.tpo.almacen.mapper;
 import com.uade.tpo.almacen.entity.Carrito;
 import com.uade.tpo.almacen.entity.ItemCarrito;
 import com.uade.tpo.almacen.entity.Producto;
-import com.uade.tpo.almacen.entity.dto.CarritoResponse;
-import com.uade.tpo.almacen.entity.dto.ItemCarritoDTO;
+import com.uade.tpo.almacen.dto.CarritoResponse;
+import com.uade.tpo.almacen.dto.ItemCarritoDTO;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

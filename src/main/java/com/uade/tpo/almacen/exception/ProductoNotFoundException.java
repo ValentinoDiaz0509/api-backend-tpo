@@ -1,0 +1,13 @@
+package com.uade.tpo.almacen.exception;
+
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.HttpStatus;
+
+@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "El producto no existe.")
+public class ProductoNotFoundException extends Exception {
+    
+    public ProductoNotFoundException(String message) {
+        super(message);
+    }
+    
+}

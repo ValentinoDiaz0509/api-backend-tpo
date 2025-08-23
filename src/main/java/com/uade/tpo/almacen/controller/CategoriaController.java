@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.controller.dto.CategoriaResponse; // ✅ DTO correcto
-import com.uade.tpo.almacen.excepciones.NoEncontradoException;
-import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
+import com.uade.tpo.almacen.exception.NoEncontradoException;
+import com.uade.tpo.almacen.exception.ParametroFueraDeRangoException;
 import com.uade.tpo.almacen.service.CategoriaService;
 
 import java.net.URI;

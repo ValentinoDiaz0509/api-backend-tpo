@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.uade.tpo.almacen.entity.Orden;
 import com.uade.tpo.almacen.entity.Usuario;
 import com.uade.tpo.almacen.entity.dto.OrdenResponseDTO;
-import com.uade.tpo.almacen.excepciones.NoEncontradoException;
+import com.uade.tpo.almacen.exception.NoEncontradoException;
 import com.uade.tpo.almacen.service.OrdenService;
 import com.uade.tpo.almacen.service.UsuarioService;
 

@@ -12,9 +12,9 @@ import com.uade.tpo.almacen.controller.dto.ProductoDTO;
 import com.uade.tpo.almacen.entity.dto.ProductoRequest;
 import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.Producto;
-import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
-import com.uade.tpo.almacen.excepciones.ProductoDuplicateException;
-import com.uade.tpo.almacen.excepciones.ProductoNotFoundException;
+import com.uade.tpo.almacen.exception.ParametroFueraDeRangoException;
+import com.uade.tpo.almacen.exception.ProductoDuplicateException;
+import com.uade.tpo.almacen.exception.ProductoNotFoundException;
 import com.uade.tpo.almacen.service.CategoriaService;
 import com.uade.tpo.almacen.service.ProductoService;
 

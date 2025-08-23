@@ -9,7 +9,7 @@ import com.uade.tpo.almacen.controller.dto.LoginJwtResponse;
 import com.uade.tpo.almacen.controller.dto.LoginRequest;
 import com.uade.tpo.almacen.controller.dto.UsuarioLoginResponse;
 import com.uade.tpo.almacen.entity.Usuario;
-import com.uade.tpo.almacen.security.JwtUtil;
+import com.uade.tpo.almacen.config.security.JwtUtil;
 import com.uade.tpo.almacen.service.UsuarioService;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.uade.tpo.almacen.security;
 
 import com.uade.tpo.almacen.entity.Usuario;
-import com.uade.tpo.almacen.service.UsuarioService;
+import com.uade.tpo.almacen.service.impl.UsuarioService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

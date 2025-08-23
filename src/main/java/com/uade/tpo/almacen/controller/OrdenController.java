@@ -11,8 +11,8 @@ import com.uade.tpo.almacen.entity.Orden;
 import com.uade.tpo.almacen.entity.Usuario;
 import com.uade.tpo.almacen.entity.dto.OrdenResponseDTO;
 import com.uade.tpo.almacen.excepciones.NoEncontradoException;
-import com.uade.tpo.almacen.service.OrdenService;
-import com.uade.tpo.almacen.service.UsuarioService;
+import com.uade.tpo.almacen.service.api.OrdenService;
+import com.uade.tpo.almacen.service.impl.UsuarioService;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;

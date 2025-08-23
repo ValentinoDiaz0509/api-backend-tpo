@@ -15,8 +15,8 @@ import com.uade.tpo.almacen.entity.Producto;
 import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
 import com.uade.tpo.almacen.excepciones.ProductoDuplicateException;
 import com.uade.tpo.almacen.excepciones.ProductoNotFoundException;
-import com.uade.tpo.almacen.service.CategoriaService;
-import com.uade.tpo.almacen.service.ProductoService;
+import com.uade.tpo.almacen.service.api.CategoriaService;
+import com.uade.tpo.almacen.service.api.ProductoService;
 
 import java.math.BigDecimal;
 import java.net.URI;

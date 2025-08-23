@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.uade.tpo.almacen.entity.Direccion;
 import com.uade.tpo.almacen.entity.Usuario;
-import com.uade.tpo.almacen.service.DireccionService;
-import com.uade.tpo.almacen.service.UsuarioService;
+import com.uade.tpo.almacen.service.impl.DireccionService;
+import com.uade.tpo.almacen.service.impl.UsuarioService;
 
 import java.util.List;
 import java.util.Optional;

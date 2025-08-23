@@ -17,6 +17,12 @@ import com.uade.tpo.almacen.repository.DireccionRepository;
 import com.uade.tpo.almacen.repository.OrdenRepository;
 import com.uade.tpo.almacen.repository.ProductoRepository;
 import com.uade.tpo.almacen.repository.UsuarioRepository;
+import com.uade.tpo.almacen.excepciones.NoEncontradoException;
+import com.uade.tpo.almacen.excepciones.ProductoNoEncontradoException;
+import com.uade.tpo.almacen.excepciones.OperacionNoPermitidaException;
+import com.uade.tpo.almacen.excepciones.UsuarioNoEncontradoException;
+import com.uade.tpo.almacen.excepciones.CarritoVacioException;
+import com.uade.tpo.almacen.excepciones.StockInsuficienteException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,10 +60,10 @@ public class OrdenServiceImpl implements OrdenService {
         // 1) Carrito ACTIVO con ítems
         Carrito carrito = carritoRepo
                 .findByUsuarioIdAndEstadoConItems(usuario.getId(), EstadoCarrito.ACTIVO)
-                .orElseThrow(() -> new IllegalArgumentException("No hay carrito activo para el usuario"));
+                .orElseThrow(() -> new NoEncontradoException("No hay carrito activo para el usuario"));
 
         if (carrito.getItemsCarrito().isEmpty()) {
-            throw new IllegalStateException("El carrito está vacío");
+            throw new CarritoVacioException("El carrito está vacío");
         }
 
         // 2) Crear orden base (total=0 para cumplir NOT NULL)
@@ -69,7 +75,7 @@ public class OrdenServiceImpl implements OrdenService {
 
         if (direccionId != null) {
             Direccion direccion = direccionRepo.findById(direccionId)
-                    .orElseThrow(() -> new IllegalArgumentException("Dirección no encontrada"));
+                    .orElseThrow(() -> new NoEncontradoException("Dirección no encontrada"));
             orden.setDireccionEnvio(direccion);
         }
         orden = ordenRepo.save(orden);
@@ -79,10 +85,10 @@ public class OrdenServiceImpl implements OrdenService {
 
         for (ItemCarrito ic : carrito.getItemsCarrito()) {
             Producto p = productoRepo.findById(ic.getProducto().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+                    .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado"));
 
             if (p.getStock() < ic.getCantidad()) {
-                throw new IllegalStateException("Stock insuficiente para " + p.getNombre());
+                throw new StockInsuficienteException("Stock insuficiente para " + p.getNombre());
             }
 
             // precio unitario con descuento por producto (si aplica)
@@ -129,9 +135,9 @@ public class OrdenServiceImpl implements OrdenService {
     @Override
     public Orden obtenerOrden(int usuarioId, int ordenId) {
         Orden o = ordenRepo.findById(ordenId)
-                .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada"));
+                .orElseThrow(() -> new NoEncontradoException("Orden no encontrada"));
         if (o.getUsuario() == null || o.getUsuario().getId() != usuarioId) {
-            throw new IllegalArgumentException("La orden no pertenece al usuario");
+            throw new OperacionNoPermitidaException("La orden no pertenece al usuario");
         }
         return o;
     }
@@ -139,7 +145,7 @@ public class OrdenServiceImpl implements OrdenService {
     @Override
     public List<Orden> obtenerOrdenes(int usuarioId) {
         var usuario = usuarioRepo.findById(usuarioId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
         return ordenRepo.findByUsuarioOrderByFechaDesc(usuario);
     }
 

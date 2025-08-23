@@ -14,7 +14,7 @@ import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.Producto;
 import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
 import com.uade.tpo.almacen.excepciones.ProductoDuplicateException;
-import com.uade.tpo.almacen.excepciones.ProductoNotFoundException;
+import com.uade.tpo.almacen.excepciones.ProductoNoEncontradoException;
 import com.uade.tpo.almacen.service.CategoriaService;
 import com.uade.tpo.almacen.service.ProductoService;
 
@@ -40,7 +40,7 @@ public class ProductoController {
             @RequestParam(required = false) String marca,
             @RequestParam(required = false) Integer categoriaId,
             @RequestParam(required = false) BigDecimal precioMin,
-            @RequestParam(required = false) BigDecimal precioMax) throws ProductoNotFoundException {
+            @RequestParam(required = false) BigDecimal precioMax) throws ProductoNoEncontradoException {
 
         int pageNum = (page == null) ? 0 : page;
         int pageSize = (size == null) ? 200 : size;
@@ -52,7 +52,7 @@ public class ProductoController {
                 nombre, marca, categoriaId, precioMin, precioMax, PageRequest.of(pageNum, pageSize));
 
         if (productos.isEmpty()) {
-            throw new ProductoNotFoundException("No hay productos que coincidan con los filtros");
+            throw new ProductoNoEncontradoException("No hay productos que coincidan con los filtros");
         }
 
         Page<ProductoDTO> productosDTO = productos.map(ProductoDTO::new);
@@ -60,7 +60,7 @@ public class ProductoController {
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<ProductoDTO> getProductoById(@PathVariable int id) throws ProductoNotFoundException {
+    public ResponseEntity<ProductoDTO> getProductoById(@PathVariable int id) throws ProductoNoEncontradoException {
         if (id < 1) {
             throw new ParametroFueraDeRangoException("El id del producto debe ser mayor a 0");
         }
@@ -68,12 +68,12 @@ public class ProductoController {
         if (result.isPresent()) {
             return ResponseEntity.ok(new ProductoDTO(result.get()));
         }
-        throw new ProductoNotFoundException("No se encontró el producto con id: " + id);
+        throw new ProductoNoEncontradoException("No se encontró el producto con id: " + id);
     }
 
     @GetMapping("/nombre/{nombreProducto}")
     public ResponseEntity<ProductoDTO> getProductoByName(@PathVariable String nombreProducto)
-            throws ProductoNotFoundException {
+            throws ProductoNoEncontradoException {
         if (nombreProducto == null || nombreProducto.isEmpty()) {
             throw new ParametroFueraDeRangoException("El nombre del producto no puede ser nulo o vacío");
         }
@@ -81,12 +81,12 @@ public class ProductoController {
         if (result.isPresent()) {
             return ResponseEntity.ok(new ProductoDTO(result.get()));
         }
-        throw new ProductoNotFoundException("No se encontró el producto con nombre: " + nombreProducto);
+        throw new ProductoNoEncontradoException("No se encontró el producto con nombre: " + nombreProducto);
     }
 
     @GetMapping("/categoria/{categoriaId}")
     public ResponseEntity<ProductoDTO> getProductoByCategory(@PathVariable int categoriaId)
-            throws ProductoNotFoundException {
+            throws ProductoNoEncontradoException {
         if (categoriaId < 1) {
             throw new ParametroFueraDeRangoException("El id de la categoría debe ser mayor a 0");
         }
@@ -97,12 +97,12 @@ public class ProductoController {
                 return ResponseEntity.ok(new ProductoDTO(producto.get()));
             }
         }
-        throw new ProductoNotFoundException("No se encontró el producto con categoría: " + categoriaId);
+        throw new ProductoNoEncontradoException("No se encontró el producto con categoría: " + categoriaId);
     }
 
     @GetMapping("/marca/{marca}")
     public ResponseEntity<ProductoDTO> getProductoByMarca(@PathVariable String marca)
-            throws ProductoNotFoundException {
+            throws ProductoNoEncontradoException {
         if (marca == null || marca.isEmpty()) {
             throw new ParametroFueraDeRangoException("La marca no puede ser nula o vacía");
         }
@@ -110,14 +110,14 @@ public class ProductoController {
         if (result.isPresent()) {
             return ResponseEntity.ok(new ProductoDTO(result.get()));
         }
-        throw new ProductoNotFoundException("No se encontró el producto con marca: " + marca);
+        throw new ProductoNoEncontradoException("No se encontró el producto con marca: " + marca);
     }
 
     // Versión con query params: /producto/precio?precioMax=...&precioMin=...
     @GetMapping("/precio")
     public ResponseEntity<ProductoDTO> getProductoByPrecio(
             @RequestParam(required = false) BigDecimal precioMax,
-            @RequestParam(required = false) BigDecimal precioMin) throws ProductoNotFoundException {
+            @RequestParam(required = false) BigDecimal precioMin) throws ProductoNoEncontradoException {
 
         Optional<Producto> result = Optional.empty();
 
@@ -136,7 +136,7 @@ public class ProductoController {
         if (result.isPresent()) {
             return ResponseEntity.ok(new ProductoDTO(result.get()));
         }
-        throw new ProductoNotFoundException(
+        throw new ProductoNoEncontradoException(
                 "No se encontraron productos con precio máximo: " + precioMax + " y mínimo: " + precioMin);
     }
 
@@ -148,7 +148,7 @@ public class ProductoController {
             @RequestParam(required = false) String marca,
             @RequestParam(required = false) Integer categoriaId,
             @RequestParam(required = false) BigDecimal precioMin,
-            @RequestParam(required = false) BigDecimal precioMax) throws ProductoNotFoundException {
+            @RequestParam(required = false) BigDecimal precioMax) throws ProductoNoEncontradoException {
 
         int pageNum = (page == null) ? 0 : page;
         int pageSize = (size == null) ? 200 : size;
@@ -160,7 +160,7 @@ public class ProductoController {
                 nombre, marca, categoriaId, precioMin, precioMax, PageRequest.of(pageNum, pageSize));
 
         if (productos.isEmpty()) {
-            throw new ProductoNotFoundException("No hay productos que coincidan con los filtros");
+            throw new ProductoNoEncontradoException("No hay productos que coincidan con los filtros");
         }
 
         var list = productos.stream()
@@ -172,7 +172,7 @@ public class ProductoController {
                 new PageImpl<>(list, productos.getPageable(), list.size()); // total consistente con el filtro
 
         if (catalogoResponse.isEmpty()) {
-            throw new ProductoNotFoundException("No hay productos cargados");
+            throw new ProductoNoEncontradoException("No hay productos cargados");
         }
         return ResponseEntity.ok(catalogoResponse);
     }
@@ -221,7 +221,7 @@ public class ProductoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateProducto(@PathVariable int id, @RequestBody ProductoRequest productoRequest)
-            throws ProductoNotFoundException {
+            throws ProductoNoEncontradoException {
 
         if (productoRequest.getCategoria_id() < 1) {
             throw new ParametroFueraDeRangoException("El id del producto debe ser mayor a 0");
@@ -261,12 +261,12 @@ public class ProductoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteProducto(@PathVariable int id) throws ProductoNotFoundException {
+    public ResponseEntity<Object> deleteProducto(@PathVariable int id) throws ProductoNoEncontradoException {
         if (id < 1) {
             throw new ParametroFueraDeRangoException("El id del producto debe ser mayor a 0");
         }
         productoService.getProductoById(id)
-                .orElseThrow(() -> new ProductoNotFoundException("No se encontró el producto con id: " + id));
+                .orElseThrow(() -> new ProductoNoEncontradoException("No se encontró el producto con id: " + id));
         productoService.deleteProducto(id);
         return ResponseEntity.noContent().build();
     }

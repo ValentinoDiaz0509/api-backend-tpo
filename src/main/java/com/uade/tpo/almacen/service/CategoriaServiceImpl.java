@@ -3,6 +3,7 @@ package com.uade.tpo.almacen.service;
 import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.dto.CategoryRequest;
 import com.uade.tpo.almacen.repository.CategoriaRepository;
+import com.uade.tpo.almacen.excepciones.CategoriaNoEncontradaException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ public class CategoriaServiceImpl implements CategoriaService {
 
         if (req.getParentId() != null) {
             Categoria parent = repo.findById(req.getParentId())
-                    .orElseThrow(() -> new IllegalArgumentException("Categoría padre no encontrada: " + req.getParentId()));
+                    .orElseThrow(() -> new CategoriaNoEncontradaException("Categoría padre no encontrada: " + req.getParentId()));
             cat.setParentCategoria(parent);
             if (parent.getSubcategorias() != null) {
                 parent.getSubcategorias().add(cat);
@@ -64,7 +65,7 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Transactional
     public void deleteCategory(int id) {
         if (!repo.existsById(id)) {
-            throw new IllegalArgumentException("Categoría no encontrada: " + id);
+            throw new CategoriaNoEncontradaException("Categoría no encontrada: " + id);
         }
         repo.deleteById(id);
     }
@@ -73,7 +74,7 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Transactional
     public Categoria updateCategory(int id, CategoryRequest req) {
         Categoria cat = repo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada: " + id));
+                .orElseThrow(() -> new CategoriaNoEncontradaException("Categoría no encontrada: " + id));
 
         if (req.getNombre() != null && !req.getNombre().isBlank()) {
             cat.setNombre(req.getNombre());
@@ -81,7 +82,7 @@ public class CategoriaServiceImpl implements CategoriaService {
 
         if (req.getParentId() != null) {
             Categoria parent = repo.findById(req.getParentId())
-                    .orElseThrow(() -> new IllegalArgumentException("Categoría padre no encontrada: " + req.getParentId()));
+                    .orElseThrow(() -> new CategoriaNoEncontradaException("Categoría padre no encontrada: " + req.getParentId()));
             cat.setParentCategoria(parent);
             if (parent.getSubcategorias() != null && !parent.getSubcategorias().contains(cat)) {
                 parent.getSubcategorias().add(cat);

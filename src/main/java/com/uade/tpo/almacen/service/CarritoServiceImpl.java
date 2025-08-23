@@ -2,6 +2,9 @@ package com.uade.tpo.almacen.service;
 
 import com.uade.tpo.almacen.entity.*;
 import com.uade.tpo.almacen.repository.*;
+import com.uade.tpo.almacen.excepciones.UsuarioNoEncontradoException;
+import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
+import com.uade.tpo.almacen.excepciones.ProductoNoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +32,7 @@ public class CarritoServiceImpl implements CarritoService {
     @Override @Transactional
     public Carrito obtenerOCrearCarrito(int usuarioId) {
         Usuario usuario = usuarioRepo.findById(usuarioId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado"));
         return carritoRepo.findByUsuarioIdAndEstadoConItems(usuarioId, EstadoCarrito.ACTIVO)
                 .orElseGet(() -> {
                     Carrito c = new Carrito();
@@ -42,10 +45,10 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override @Transactional
     public Carrito agregarItem(int usuarioId, int productoId, int cantidad) {
-        if (cantidad <= 0) throw new IllegalArgumentException("Cantidad debe ser > 0");
+        if (cantidad <= 0) throw new ParametroFueraDeRangoException("Cantidad debe ser > 0");
         Carrito carrito = obtenerOCrearCarrito(usuarioId);
         Producto producto = productoRepo.findById(productoId)
-                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado"));
 
         Optional<ItemCarrito> existente = carrito.getItemsCarrito().stream()
                 .filter(i -> i.getProducto().getId() == productoId)

@@ -2,6 +2,9 @@ package com.uade.tpo.almacen.service;
 
 import com.uade.tpo.almacen.entity.Usuario;
 import com.uade.tpo.almacen.repository.UsuarioRepository;
+import com.uade.tpo.almacen.excepciones.UsuarioNoEncontradoException;
+import com.uade.tpo.almacen.excepciones.DatoDuplicadoException;
+import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,7 +44,7 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public Usuario getUsuarioByIdOrThrow(int id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con ID: " + id));
     }
 
     @Transactional(readOnly = true)
@@ -73,10 +76,10 @@ public class UsuarioService {
     @Transactional
     public Usuario createUsuario(Usuario usuario) {
         if (usuarioRepository.existsByUsername(usuario.getUsername())) {
-            throw new IllegalArgumentException("El nombre de usuario ya está en uso.");
+            throw new DatoDuplicadoException("El nombre de usuario ya está en uso.");
         }
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            throw new IllegalArgumentException("El email ya está en uso.");
+            throw new DatoDuplicadoException("El email ya está en uso.");
         }
 
        
@@ -87,21 +90,21 @@ public class UsuarioService {
     @Transactional
     public Usuario updateUsuario(Usuario cambios) {
         if (cambios.getId() == 0) {
-            throw new IllegalArgumentException("ID inválido para actualización.");
+            throw new ParametroFueraDeRangoException("ID inválido para actualización.");
         }
 
         Usuario existente = usuarioRepository.findById(cambios.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + cambios.getId()));
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con ID: " + cambios.getId()));
 
         if (cambios.getUsername() != null && !cambios.getUsername().equals(existente.getUsername())) {
             if (usuarioRepository.existsByUsername(cambios.getUsername())) {
-                throw new IllegalArgumentException("El nombre de usuario ya está en uso.");
+                throw new DatoDuplicadoException("El nombre de usuario ya está en uso.");
             }
             existente.setUsername(cambios.getUsername());
         }
         if (cambios.getEmail() != null && !cambios.getEmail().equals(existente.getEmail())) {
             if (usuarioRepository.existsByEmail(cambios.getEmail())) {
-                throw new IllegalArgumentException("El email ya está en uso.");
+                throw new DatoDuplicadoException("El email ya está en uso.");
             }
             existente.setEmail(cambios.getEmail());
         }
@@ -119,7 +122,7 @@ public class UsuarioService {
     @Transactional
     public void deleteUsuarioById(int id) {
         if (!usuarioRepository.existsById(id)) {
-            throw new IllegalArgumentException("Usuario no encontrado con ID: " + id);
+            throw new UsuarioNoEncontradoException("Usuario no encontrado con ID: " + id);
         }
         usuarioRepository.deleteById(id);
     }

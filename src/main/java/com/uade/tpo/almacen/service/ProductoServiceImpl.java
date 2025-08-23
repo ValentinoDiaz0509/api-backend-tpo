@@ -7,6 +7,9 @@ import com.uade.tpo.almacen.entity.dto.ProductoRequest; // <- DTO en entity.dto
 import com.uade.tpo.almacen.repository.CategoriaRepository;
 import com.uade.tpo.almacen.repository.HistorialPrecioRepository;
 import com.uade.tpo.almacen.repository.ProductoRepository;
+import com.uade.tpo.almacen.excepciones.CategoriaNoEncontradaException;
+import com.uade.tpo.almacen.excepciones.ProductoNoEncontradoException;
+import com.uade.tpo.almacen.excepciones.ProductoDuplicateException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -104,11 +107,11 @@ public class ProductoServiceImpl implements ProductoService {
     @Transactional
     public Producto createProducto(ProductoRequest req) {
         Categoria cat = categoriaRepo.findById(req.getCategoria_id())
-                .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada: " + req.getCategoria_id()));
+                .orElseThrow(() -> new CategoriaNoEncontradaException("Categoria no encontrada: " + req.getCategoria_id()));
 
         if (productoRepo.existsByNombreAndDescripcionAndMarcaAndCategoria(
                 req.getNombre(), req.getDescripcion(), req.getMarca(), cat)) {
-            throw new IllegalArgumentException("Ya existe un producto con mismos datos en esa categoría");
+            throw new ProductoDuplicateException("Ya existe un producto con mismos datos en esa categoría");
         }
 
         Producto p = new Producto();
@@ -133,7 +136,7 @@ public class ProductoServiceImpl implements ProductoService {
     @Transactional
     public Producto updateProducto(int id, ProductoRequest req) {
         Producto p = productoRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + id));
+                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado: " + id));
 
         // Historial de precio si cambia
         if (req.getPrecio() != null) {
@@ -157,7 +160,7 @@ public class ProductoServiceImpl implements ProductoService {
 
         if (req.getCategoria_id() > 0) {
             Categoria cat = categoriaRepo.findById(req.getCategoria_id())
-                    .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada: " + req.getCategoria_id()));
+                    .orElseThrow(() -> new CategoriaNoEncontradaException("Categoria no encontrada: " + req.getCategoria_id()));
             p.setCategoria(cat);
         }
 
@@ -179,17 +182,17 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public Producto obtener(int id) {
         return productoRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+                .orElseThrow(() -> new ProductoNoEncontradoException("Producto no encontrado"));
     }
 
     @Override
     @Transactional
     public Producto crear(Producto p, int categoriaId) {
         Categoria cat = categoriaRepo.findById(categoriaId)
-                .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada"));
+                .orElseThrow(() -> new CategoriaNoEncontradaException("Categoria no encontrada"));
         if (productoRepo.existsByNombreAndDescripcionAndMarcaAndCategoria(
                 p.getNombre(), p.getDescripcion(), p.getMarca(), cat)) {
-            throw new IllegalArgumentException("Ya existe un producto con mismos datos en esa categoría");
+            throw new ProductoDuplicateException("Ya existe un producto con mismos datos en esa categoría");
         }
         p.setCategoria(cat);
         return productoRepo.save(p);
@@ -222,7 +225,7 @@ public class ProductoServiceImpl implements ProductoService {
 
         if (categoriaId != null) {
             Categoria cat = categoriaRepo.findById(categoriaId)
-                    .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada"));
+                    .orElseThrow(() -> new CategoriaNoEncontradaException("Categoria no encontrada"));
             p.setCategoria(cat);
         }
         return productoRepo.save(p);

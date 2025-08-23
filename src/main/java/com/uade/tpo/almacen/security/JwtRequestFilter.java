@@ -26,13 +26,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     // Endpoints públicos (no requieren auth)
     private static final List<String> WHITELIST = List.of(
-            "/auth/login",
-            "/auth/register",
+            "/usuarios/login",
+            "/usuarios",
             "/v3/api-docs",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/producto",           
+            "/producto",
             "/producto/catalogo"
     );
 

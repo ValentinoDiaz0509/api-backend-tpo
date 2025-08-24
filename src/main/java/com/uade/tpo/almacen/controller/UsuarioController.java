@@ -221,4 +221,3 @@ public class UsuarioController {
         return ResponseEntity.ok(new LoginJwtResponse(token, response));
     }
 }
-

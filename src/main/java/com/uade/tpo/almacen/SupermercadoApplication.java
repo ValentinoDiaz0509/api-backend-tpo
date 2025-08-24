@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling // Habilita las tareas programadas
+@EnableScheduling 
 public class SupermercadoApplication {
 
 	public static void main(String[] args) {

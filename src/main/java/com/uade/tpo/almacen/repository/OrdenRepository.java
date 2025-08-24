@@ -5,6 +5,6 @@ import com.uade.tpo.almacen.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
-public interface OrdenRepository extends JpaRepository<Orden, Integer> {
-    List<Orden> findByUsuarioOrderByFechaDesc(Usuario usuario);
+public interface OrdenRepository extends JpaRepository<Orden, Long> {
+    List<Orden> findByUsuarioOrderByFechaCreacionDesc(Usuario usuario);
 }

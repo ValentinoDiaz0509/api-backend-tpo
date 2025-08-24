@@ -34,4 +34,3 @@ mvnw.cmd    text eol=crlf
 
 *.iml       text eol=lf
 *.code-workspace text eol=lf
-

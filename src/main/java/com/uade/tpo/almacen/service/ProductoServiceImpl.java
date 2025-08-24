@@ -3,6 +3,7 @@ package com.uade.tpo.almacen.service;
 import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.HistorialPrecio;
 import com.uade.tpo.almacen.entity.Producto;
+import com.uade.tpo.almacen.entity.Imagen;
 import com.uade.tpo.almacen.entity.dto.ProductoRequest; // <- DTO en entity.dto
 import com.uade.tpo.almacen.repository.CategoriaRepository;
 import com.uade.tpo.almacen.repository.HistorialPrecioRepository;
@@ -126,6 +127,16 @@ public class ProductoServiceImpl implements ProductoService {
         p.setEstado(req.getEstado());
 
         p.setCategoria(cat);
+
+        if (req.getImagenes() != null) {
+            for (String imgStr : req.getImagenes()) {
+                Imagen img = new Imagen();
+                img.setImagen(imgStr);
+                img.setProducto(p);
+                p.getImagenes().add(img);
+            }
+        }
+
         return productoRepo.save(p);
     }
 
@@ -161,6 +172,16 @@ public class ProductoServiceImpl implements ProductoService {
             p.setCategoria(cat);
         }
 
+        if (req.getImagenes() != null) {
+            p.getImagenes().clear();
+            for (String imgStr : req.getImagenes()) {
+                Imagen img = new Imagen();
+                img.setImagen(imgStr);
+                img.setProducto(p);
+                p.getImagenes().add(img);
+            }
+        }
+
         return productoRepo.save(p);
     }
 
@@ -192,6 +213,11 @@ public class ProductoServiceImpl implements ProductoService {
             throw new IllegalArgumentException("Ya existe un producto con mismos datos en esa categoría");
         }
         p.setCategoria(cat);
+
+        if (p.getImagenes() != null) {
+            p.getImagenes().forEach(img -> img.setProducto(p));
+        }
+
         return productoRepo.save(p);
     }
 
@@ -224,6 +250,14 @@ public class ProductoServiceImpl implements ProductoService {
             Categoria cat = categoriaRepo.findById(categoriaId)
                     .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada"));
             p.setCategoria(cat);
+        }
+
+        if (cambios.getImagenes() != null) {
+            p.getImagenes().clear();
+            for (Imagen img : cambios.getImagenes()) {
+                img.setProducto(p);
+                p.getImagenes().add(img);
+            }
         }
         return productoRepo.save(p);
     }

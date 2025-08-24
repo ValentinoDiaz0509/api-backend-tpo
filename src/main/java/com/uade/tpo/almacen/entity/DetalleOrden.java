@@ -3,6 +3,7 @@ package com.uade.tpo.almacen.entity;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,11 +26,12 @@ public class DetalleOrden {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orden_id", nullable = false)
+    @JsonIgnore
     private Orden orden;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 

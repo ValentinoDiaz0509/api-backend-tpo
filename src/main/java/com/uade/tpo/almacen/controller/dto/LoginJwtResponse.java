@@ -12,3 +12,4 @@ public class LoginJwtResponse {
     public String getToken() { return token; }
     public UsuarioLoginResponse getUsuario() { return usuario; }
 }
+

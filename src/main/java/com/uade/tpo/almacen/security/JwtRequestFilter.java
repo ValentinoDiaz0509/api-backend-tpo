@@ -17,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -24,16 +25,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UsuarioService usuarioService;
 
-    // Endpoints públicos (no requieren auth)
-    private static final List<String> WHITELIST = List.of(
+    // Prefijos públicos (no requieren auth)
+    private static final List<String> WHITELIST_PREFIXES = List.of(
+            "/swagger-ui/",
+            "/v3/api-docs/"
+    );
+
+    // Rutas exactas públicas
+    private static final Set<String> WHITELIST_EXACT = Set.of(
+            "/swagger-ui.html",
+            "/v3/api-docs",
             "/usuarios/login",
             "/usuarios",
-            "/v3/api-docs",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
             "/producto",
-            "/producto/catalogo"
+            "/producto/catalogo",
+            "/error"
     );
 
     public JwtRequestFilter(JwtUtil jwtUtil, UsuarioService usuarioService) {
@@ -44,7 +50,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return WHITELIST.stream().anyMatch(path::startsWith);
+        if (WHITELIST_EXACT.contains(path)) return true;
+        return WHITELIST_PREFIXES.stream().anyMatch(path::startsWith);
     }
 
     @Override

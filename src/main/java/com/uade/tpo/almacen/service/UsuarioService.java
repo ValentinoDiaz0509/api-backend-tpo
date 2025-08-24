@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-// import org.springframework.security.crypto.password.PasswordEncoder; // <- si usás Spring Security
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +15,12 @@ import java.util.Optional;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    // private final PasswordEncoder passwordEncoder; // opcional
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository
-                      ) {
+    public UsuarioService(UsuarioRepository usuarioRepository,
+                          PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
    
@@ -79,7 +80,7 @@ public class UsuarioService {
             throw new IllegalArgumentException("El email ya está en uso.");
         }
 
-       
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
         return usuarioRepository.save(usuario);
     }
@@ -107,7 +108,7 @@ public class UsuarioService {
         }
 
         if (cambios.getPassword() != null && !cambios.getPassword().isBlank()) {
-            existente.setPassword(cambios.getPassword());
+            existente.setPassword(passwordEncoder.encode(cambios.getPassword()));
         }
         if (cambios.getNombre() != null) existente.setNombre(cambios.getNombre());
         if (cambios.getApellido() != null) existente.setApellido(cambios.getApellido());

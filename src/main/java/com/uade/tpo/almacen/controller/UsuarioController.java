@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -26,6 +27,9 @@ public class UsuarioController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // DTO para exponer solo datos seguros
     public static class UsuarioProfileDTO {
@@ -44,7 +48,7 @@ public class UsuarioController {
             this.nombre = u.getNombre();
             this.apellido = u.getApellido();
             this.rol = u.getRol();
-            this.fecha_registro = u.getFecha_registro();
+            this.fecha_registro = u.getFechaRegistro();
         }
     }
 
@@ -143,7 +147,7 @@ public class UsuarioController {
         }
         Usuario usuario = usuarioOpt.get();
         // Verifica la contraseña actual
-        if (!usuario.getPassword().equals(passwordChangeRequest.getContrasenaActual())) {
+        if (!passwordEncoder.matches(passwordChangeRequest.getContrasenaActual(), usuario.getPassword())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La contraseña actual es incorrecta.");
         }
         usuario.setPassword(passwordChangeRequest.getNuevaContrasena());
@@ -202,7 +206,7 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario o contraseña incorrectos.");
         }
         Usuario usuario = usuarioOpt.get();
-        if (!usuario.getPassword().equals(loginRequest.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), usuario.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario o contraseña incorrectos.");
         }
         // Generar JWT

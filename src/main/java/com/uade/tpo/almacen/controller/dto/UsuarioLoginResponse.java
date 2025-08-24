@@ -25,3 +25,4 @@ public class UsuarioLoginResponse {
     public String getApellido() { return apellido; }
     public String getRol() { return rol; }
 }
+

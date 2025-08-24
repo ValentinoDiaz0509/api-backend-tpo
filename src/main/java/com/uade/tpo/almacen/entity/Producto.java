@@ -55,4 +55,3 @@ public class Producto {
     @Builder.Default
     private List<Imagen> imagenes = new ArrayList<>();
 }
-

@@ -11,3 +11,4 @@ public record CarritoResponse(
     @JsonProperty("items") List<ItemCarritoDTO> items,
     @JsonProperty("total") double total
 ) implements Serializable {}
+

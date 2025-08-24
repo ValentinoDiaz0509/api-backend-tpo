@@ -1,27 +1,14 @@
 package com.uade.tpo.almacen.service;
 
-import com.uade.tpo.almacen.entity.Carrito;
-import com.uade.tpo.almacen.entity.DetalleOrden;
-import com.uade.tpo.almacen.entity.Direccion;
-import com.uade.tpo.almacen.entity.EstadoCarrito;
-import com.uade.tpo.almacen.entity.EstadoOrden;
-import com.uade.tpo.almacen.entity.ItemCarrito;
-import com.uade.tpo.almacen.entity.Orden;
-import com.uade.tpo.almacen.entity.Producto;
-import com.uade.tpo.almacen.entity.Usuario;
+import com.uade.tpo.almacen.entity.*;
 import com.uade.tpo.almacen.entity.dto.ItemOrdenDTO;
 import com.uade.tpo.almacen.entity.dto.OrdenResponseDTO;
-import com.uade.tpo.almacen.repository.CarritoRepository;
-import com.uade.tpo.almacen.repository.DetalleOrdenRepository;
-import com.uade.tpo.almacen.repository.DireccionRepository;
-import com.uade.tpo.almacen.repository.OrdenRepository;
-import com.uade.tpo.almacen.repository.ProductoRepository;
-import com.uade.tpo.almacen.repository.UsuarioRepository;
-
+import com.uade.tpo.almacen.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -60,17 +47,17 @@ public class OrdenServiceImpl implements OrdenService {
             throw new IllegalStateException("El carrito está vacío");
         }
 
-        // 2) Crear orden base (total=0 para cumplir NOT NULL)
+        // 2) Crear orden base
         Orden orden = new Orden();
         orden.setUsuario(usuario);
-        orden.setEstado(EstadoOrden.PENDIENTE);
-        orden.setDescuentoTotal(BigDecimal.ZERO);
-        orden.setTotal(BigDecimal.ZERO); // importante antes del primer save
+        orden.setEstado(EstadoOrden.PENDIENTE.name()); // Orden.estado es String
+        orden.setFechaCreacion(LocalDateTime.now());
+        orden.setTotal(BigDecimal.ZERO); // inicial para cumplir NOT NULL
 
         if (direccionId != null) {
             Direccion direccion = direccionRepo.findById(direccionId)
                     .orElseThrow(() -> new IllegalArgumentException("Dirección no encontrada"));
-            orden.setDireccionEnvio(direccion);
+            orden.setDireccion(direccion); // campo Direccion en Orden
         }
         orden = ordenRepo.save(orden);
 
@@ -85,7 +72,7 @@ public class OrdenServiceImpl implements OrdenService {
                 throw new IllegalStateException("Stock insuficiente para " + p.getNombre());
             }
 
-            // precio unitario con descuento por producto (si aplica)
+            // precio unitario (aplicando descuento del producto si existe)
             BigDecimal precioUnit = p.getPrecio();
             if (p.getDescuento() != null && p.getDescuento().compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal porc = p.getDescuento().divide(new BigDecimal("100"));
@@ -97,7 +84,7 @@ public class OrdenServiceImpl implements OrdenService {
                     .setScale(2);
             subtotal = subtotal.add(itemSubtotal);
 
-            // Detalle de la orden (requiere @Builder en la entidad DetalleOrden)
+            // Crear detalle
             DetalleOrden det = DetalleOrden.builder()
                     .cantidad(ic.getCantidad())
                     .precioUnitario(precioUnit)
@@ -114,7 +101,6 @@ public class OrdenServiceImpl implements OrdenService {
         }
 
         // 4) Total y persistir
-        orden.setDescuentoTotal(BigDecimal.ZERO); // si luego agregás cupones, ajustá acá
         orden.setTotal(subtotal.setScale(2));
         orden = ordenRepo.save(orden);
 
@@ -126,26 +112,28 @@ public class OrdenServiceImpl implements OrdenService {
         return orden;
     }
 
-    @Override
-    public Orden obtenerOrden(int usuarioId, int ordenId) {
-        Orden o = ordenRepo.findById(ordenId)
-                .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada"));
-        if (o.getUsuario() == null || o.getUsuario().getId() != usuarioId) {
-            throw new IllegalArgumentException("La orden no pertenece al usuario");
-        }
-        return o;
+  @Override
+public Orden obtenerOrden(int usuarioId, int ordenId) {
+    Orden o = ordenRepo.findById(Long.valueOf(ordenId))
+            .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada"));
+    if (o.getUsuario() == null || o.getUsuario().getId() != usuarioId) {
+        throw new IllegalArgumentException("La orden no pertenece al usuario");
     }
+    return o;
+}
 
-    @Override
-    public List<Orden> obtenerOrdenes(int usuarioId) {
-        var usuario = usuarioRepo.findById(usuarioId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-        return ordenRepo.findByUsuarioOrderByFechaDesc(usuario);
-    }
+@Override
+public List<Orden> obtenerOrdenes(int usuarioId) {
+    var usuario = usuarioRepo.findById(usuarioId)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+    return ordenRepo.findByUsuarioOrderByFechaCreacionDesc(usuario);
+}
+
+
 
     @Override
     public OrdenResponseDTO convertirAOrdenResponse(Orden o) {
-        var items = o.getItemsOrden().stream().map(i ->
+        var items = o.getDetalles().stream().map(i ->
                 new ItemOrdenDTO(
                         i.getProducto().getId(),
                         i.getProducto().getNombre(),
@@ -155,10 +143,10 @@ public class OrdenServiceImpl implements OrdenService {
                 )
         ).toList();
 
-        String direccion = (o.getDireccionEnvio() == null)
+        String direccionStr = (o.getDireccion() == null)
                 ? null
-                : o.getDireccionEnvio().getCalle() + " " + o.getDireccionEnvio().getNumero()
-                  + ", " + o.getDireccionEnvio().getCiudad();
+                : o.getDireccion().getCalle() + " " + o.getDireccion().getNumero()
+                  + ", " + o.getDireccion().getCiudad();
 
         BigDecimal subtotal = items.stream()
                 .map(ItemOrdenDTO::subtotal)
@@ -166,13 +154,14 @@ public class OrdenServiceImpl implements OrdenService {
 
         return new OrdenResponseDTO(
                 o.getId(),
-                o.getFecha(),
-                o.getEstado().name(),      // Enum -> String para el DTO
+                o.getFechaCreacion(),   // ahora se llama fechaCreacion
+                o.getEstado(),          // String (antes era Enum.name())
                 subtotal,
-                o.getDescuentoTotal(),
+                BigDecimal.ZERO,        // no tenemos campo descuentoTotal en Orden
                 o.getTotal(),
-                direccion,
+                direccionStr,
                 items
         );
     }
 }
+

@@ -1,27 +1,150 @@
-# TP Grupo 13: ALMACEN
+# TP Grupo 13 — **ALMACÉN** (Backend)
 
-## Endpoints de Usuario
-> Todos los endpoints (excepto login y registro) requieren autenticación JWT.  
-> Agregar header: `Authorization: Bearer {token}` (setear en Postman o Insomnia).
+Backend REST para un mini–marketplace de supermercado: usuarios, direcciones, categorías, productos, carrito y órdenes.
 
-### Autenticación
-- El token se obtiene al hacer login.
-- El rol de usuario se asigna automáticamente al registrarse.
-- El rol de administrador se asigna manualmente en la base de datos.
-- El administrador accede a todos los endpoints.
-- El usuario accede solo a sus propios endpoints de usuario y dirección.
-- El usuario no puede acceder a endpoints de administrador ni a datos de otros usuarios.
+![Java](https://img.shields.io/badge/Java-21-007396?logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-6DB33F?logo=springboot)
+![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql)
+![Build](https://img.shields.io/badge/Build-Maven-C71A36?logo=apachemaven)
+![Docs](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?logo=openapiinitiative)
 
-### POST /usuarios/login
-Autentica usuario y devuelve JWT.
-#### Request:
+---
+
+## Tabla de contenidos
+
+* [Arquitectura y Stack](#arquitectura-y-stack)
+* [Requisitos](#requisitos)
+* [Configuración](#configuración)
+* [Cómo ejecutar](#cómo-ejecutar)
+* [Swagger / OpenAPI](#swagger--openapi)
+* [Autenticación y Roles](#autenticación-y-roles)
+* [Resumen de endpoints](#resumen-de-endpoints)
+* [Endpoints (detalle con ejemplos)](#endpoints-detalle-con-ejemplos)
+
+  * [Usuario](#usuario)
+  * [Dirección](#dirección)
+  * [Categoría](#categoría)
+  * [Producto](#producto)
+  * [Carrito](#carrito)
+  * [Orden](#orden)
+* [Ejemplos rápidos (curl)](#ejemplos-rápidos-curl)
+* [Postman](#postman)
+* [Estructura del proyecto](#estructura-del-proyecto)
+* [Errores y Troubleshooting](#errores-y-troubleshooting)
+* [Autores](#autores)
+
+---
+
+## Arquitectura y Stack
+
+* **Spring Boot 3.4.4** (Web, Security, Data JPA)
+* **JWT** para autenticación stateless
+* **MySQL 8.x** como base de datos
+* **OpenAPI/Swagger** para documentación
+* Entidades principales: `Usuario`, `Direccion`, `Categoria`, `Producto`, `Carrito`/`ItemCarrito`, `Orden`/`DetalleOrden`.
+
+---
+
+## Requisitos
+
+* Java **21**
+* Maven **3.9+**
+* MySQL **8.x**
+
+---
+
+## Configuración
+
+Crear BD (opcional, Hibernate puede crearla):
+
+```sql
+CREATE DATABASE almacen CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+```
+
+Editar `src/main/resources/application.properties`:
+
+```properties
+# Base de datos
+spring.datasource.url=jdbc:mysql://localhost:3306/almacen?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=tu_password
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+
+# Puerto (opcional)
+server.port=4040
+
+# JWT (cambiar por un secreto robusto)
+jwt.secret=mi_super_secreto_256bits
+```
+
+---
+
+## Cómo ejecutar
+
+```bash
+# compilar (sin tests)
+mvn -q clean package -DskipTests
+
+# levantar el server (por defecto en 4040)
+mvn spring-boot:run -D"spring-boot.run.arguments=--server.port=4040"
+```
+
+---
+
+## Swagger / OpenAPI
+
+* UI: **[http://localhost:4040/swagger-ui/index.html](http://localhost:4040/swagger-ui/index.html)**
+* JSON: **[http://localhost:4040/v3/api-docs](http://localhost:4040/v3/api-docs)**
+
+En Swagger, usá el botón **Authorize** y pegá `Bearer {token}` tras hacer login.
+
+---
+
+## Autenticación y Roles
+
+> Todos los endpoints (salvo **login**, **registro**, catálogo y Swagger) requieren **JWT**.
+> Header: `Authorization: Bearer {token}`
+
+* **ADMIN**: acceso total.
+* **USER**: sólo sus datos, direcciones, carrito y órdenes.
+* Endpoints públicos: `/usuarios/login`, `/usuarios` (registro), `/producto` y `/producto/catalogo` (GET), `/v3/api-docs/**`, `/swagger-ui/**`.
+
+---
+
+## Resumen de endpoints
+
+| Recurso     | Base path      | Descripción                                  |
+| ----------- | -------------- | -------------------------------------------- |
+| Usuarios    | `/usuarios`    | Registro, login, perfil, CRUD (sin password) |
+| Direcciones | `/direcciones` | CRUD de direcciones del usuario autenticado  |
+| Categorías  | `/categorias`  | Listado público y CRUD (solo ADMIN)          |
+| Productos   | `/producto`    | Catálogo, filtros, y administración          |
+| Carrito     | `/carritos`    | Crear/obtener/vaciar + agregar/quitar items  |
+| Órdenes     | `/ordenes`     | Finalizar compra y consultar historial       |
+
+---
+
+## Endpoints (detalle con ejemplos)
+
+### Usuario
+
+> Requieren JWT salvo **login** y **registro**.
+
+#### POST `/usuarios/login` — Autentica usuario y devuelve JWT
+
+**Request**
+
 ```json
 {
   "username": "usuario1",
   "password": "1234"
 }
 ```
-#### Response:
+
+**Response**
+
 ```json
 {
   "token": "jwt_token_aqui",
@@ -36,11 +159,10 @@ Autentica usuario y devuelve JWT.
 }
 ```
 
----
+#### POST `/usuarios` — Registro
 
-### POST /usuarios
-Crea un nuevo usuario.
-#### Request:
+**Request**
+
 ```json
 {
   "username": "usuario2",
@@ -51,7 +173,9 @@ Crea un nuevo usuario.
   "rol": "USER"
 }
 ```
-#### Response:
+
+**Response**
+
 ```json
 {
   "id": 2,
@@ -64,11 +188,10 @@ Crea un nuevo usuario.
 }
 ```
 
----
+#### GET `/usuarios` — Lista usuarios (sin password)
 
-### GET /usuarios
-Lista todos los usuarios (sin password).
-#### Response:
+**Response**
+
 ```json
 [
   {
@@ -83,16 +206,12 @@ Lista todos los usuarios (sin password).
 ]
 ```
 
----
+#### GET `/usuarios/{id}` — Obtiene usuario por ID
 
-### GET /usuarios/{id}
-Obtiene usuario por ID (sin password).
+#### PUT `/usuarios/{id}` — Reemplazo total (sin password)
 
----
+**Request**
 
-### PUT /usuarios/{id}
-Actualiza usuario (reemplazo total, sin password).
-#### Request:
 ```json
 {
   "username": "usuario1",
@@ -103,67 +222,51 @@ Actualiza usuario (reemplazo total, sin password).
 }
 ```
 
----
+#### PATCH `/usuarios/{id}` — Actualiza parcialmente (sin password)
 
-### PATCH /usuarios/{id}
-Actualiza parcialmente usuario (sin password).
-#### Request:
+**Request**
+
 ```json
 {
   "nombre": "Juan Carlos"
 }
 ```
 
----
+#### PUT `/usuarios/password` — Cambiar contraseña (autenticado)
 
-### PUT /usuarios/password
-Cambia la contraseña del usuario autenticado.
-#### Request:
+**Request**
+
 ```json
 {
   "contrasenaActual": "1234",
   "nuevaContrasena": "nueva123"
 }
 ```
-#### Response:
-`"La contraseña fue actualizada correctamente."`
+
+**Response**
+
+```json
+"La contraseña fue actualizada correctamente."
+```
+
+#### DELETE `/usuarios/{id}` — Eliminar usuario
+
+#### GET `/usuarios/exists/username/{username}` — `true/false`
+
+#### GET `/usuarios/exists/email/{email}` — `true/false`
+
+#### GET `/usuarios/rol/{rol}` — Usuarios por rol
+
+#### GET `/usuarios/me` — Perfil autenticado
 
 ---
 
-### DELETE /usuarios/{id}
-Elimina usuario por ID.
+### Dirección (todas requieren JWT)
 
----
+#### GET `/direcciones` — Lista del usuario
 
-### GET /usuarios/exists/username/{username}
-Verifica si existe un usuario por username.  
-#### Response: `true` o `false`
+**Response**
 
----
-
-### GET /usuarios/exists/email/{email}
-Verifica si existe un usuario por email.  
-#### Response: `true` o `false`
-
----
-
-### GET /usuarios/rol/{rol}
-Lista usuarios por rol.
-
----
-
-### GET /usuarios/me
-Devuelve el perfil del usuario autenticado.
-
----
-
-## Endpoints de Dirección
-
-> Todos requieren autenticación JWT.
-
-### GET /direcciones
-Lista todas las direcciones del usuario autenticado.
-#### Response:
 ```json
 [
   {
@@ -174,16 +277,15 @@ Lista todas las direcciones del usuario autenticado.
     "ciudad": "Springfield",
     "provincia": "Buenos Aires",
     "codigoPostal": "1234",
-    "tipoVivienda": "departamento"
+    "tipoVivienda": "DEPARTAMENTO"
   }
 ]
 ```
 
----
+#### POST `/direcciones` — Crear
 
-### POST /direcciones
-Crea una nueva dirección para el usuario autenticado.
-#### Request:
+**Request**
+
 ```json
 {
   "calle": "Av. Siempre Viva",
@@ -192,10 +294,12 @@ Crea una nueva dirección para el usuario autenticado.
   "ciudad": "Springfield",
   "provincia": "Buenos Aires",
   "codigoPostal": "1234",
-  "tipoVivienda": "departamento"
+  "tipoVivienda": "DEPARTAMENTO"
 }
 ```
-#### Response:
+
+**Response**
+
 ```json
 {
   "id": 2,
@@ -205,461 +309,336 @@ Crea una nueva dirección para el usuario autenticado.
   "ciudad": "Springfield",
   "provincia": "Buenos Aires",
   "codigoPostal": "1234",
-  "tipoVivienda": "departamento"
+  "tipoVivienda": "DEPARTAMENTO"
 }
 ```
 
+#### PUT `/direcciones/{id}` — Actualizar (si te pertenece)
+
+#### DELETE `/direcciones/{id}` — Eliminar (si te pertenece)
+
+**Notas**
+
+* No envíes `usuario` en el body: se asigna automáticamente.
+* 401 sin token, 403 si no te pertenece, 404 si no existe.
+
 ---
 
-### PUT /direcciones/{id}
-Actualiza una dirección (solo si pertenece al usuario).
-#### Request:
+### Categoría
+
+* **Lectura** (GET): ADMIN, USER y visitantes.
+* **Escritura** (POST/PUT/DELETE): sólo **ADMIN**.
+
+#### GET `/categorias` — Lista (paginado opcional `page`, `size`)
+
+**Response**
+
 ```json
-{
-  "calle": "Av. Siempre Viva",
-  "numero": "742",
-  "pisoDepto": "3C",
-  "ciudad": "Springfield",
-  "provincia": "Buenos Aires",
-  "codigoPostal": "1234",
-  "tipoVivienda": "departamento"
-}
-```
-
----
-
-### DELETE /direcciones/{id}
-Elimina una dirección (solo si pertenece al usuario).
-
----
-
-**Notas:**
-- No envíes el campo `usuario` en el body de dirección, se asigna automáticamente.
-- Si intentas modificar/eliminar una dirección que no te pertenece, recibirás 403 Forbidden.
-- Si no estás autenticado, recibirás 401 Unauthorized.
-- Si el usuario no existe, recibirás 404 Not Found.
-- Si el rol no es válido, recibirás 400 Bad Request.
-- Si el usuario ya existe, recibirás 409 Conflict.
-- Si el email no es válido, recibirás 400 Bad Request.
-- Si la contraseña no cumple con los requisitos, recibirás 400 Bad Request.
-- Si el token es inválido o ha expirado, recibirás 401 Unauthorized.
-
----
-
-## Endpoints de Categoría
-
-### Autenticación y permisos
-
-- El usuario o No usuario puede consultar categorías, pero no puede modificarlas.
-- Solo el administrador puede crear, editar o eliminar categorías.
-
-## Modelo de solicitud
-
-### `CategoryRequest`
-- nombre: nombre de la categoría (String)
-- parentId: ID de la categoría padre (Integer) - puede ser null si es una categoria principal.
-
-### Endpoints:
-   
-    ==========
-
-### GET /categorias
----------------
-Lista todas las categorías y subcategorías.
-
-Acceso: ADMIN, USER y NoUser
-
-Query params opcionales:
-- page (int): número de página (default: 0)
-- size (int): cantidad de elementos por página (default: 10)
-
-//categorias?page=0&size=5 o //categorias
-Response:
 [
   {
     "id": 1,
     "nombre": "Bebidas",
     "subcategorias": [
-      {
-        "id": 2,
-        "nombre": "Gaseosas"
-      }
+      { "id": 2, "nombre": "Gaseosas" }
     ]
   }
 ]
+```
 
---------------------
-### GET /categorias/{id}
----------------------
-### Obtiene una categoría por ID.
+#### GET `/categorias/{id}` — Detalle
 
-Acceso: ADMIN, USER y NoUser
+**Response**
 
-Response:
+```json
 {
   "id": 1,
   "nombre": "Alimentos",
   "subcategorias": [
-    {
-      "id": 5,
-      "nombre": "Pastas"
-    }
+    { "id": 5, "nombre": "Pastas" }
   ]
 }
-
-Errores:
-- 404 Not Found: Categoría inexistente.
-
----
-
-### POST /categorias
-----------------
-Crea una nueva categoría o subcategoría.
-
-Acceso: Solo ADMIN
-
-Request:
-{
-  "nombre": "Lácteos",
-  "parentId": null
-}
-
-Response:
-{
-  "id": 3,
-  "nombre": "Lácteos",
-  "parent": null
-}
-
-Validaciones:
-- parentId debe referenciar una categoría válida.
-- El nombre no puede repetirse al mismo nivel.
-
-Errores:
-- 409 Conflict: Ya existe una categoría con ese nombre.
----
-
-#### PUT /categorias/{id}
----------------------
-### Reemplaza completamente una categoría existente.
-
-Acceso: Solo ADMIN
-
-Request:
-{
-  "nombre": "Snacks",
-  "parentId": null
-}
-
-Response:
-{
-  "id": 4,
-  "nombre": "Snacks",
-  "parent": null
-}
-
-Errores: No existe la categoria que se quiere actualizar
----
-
-## Endpoints de Producto
-
-
-### GET /producto
-=======
-
- main
-
-Permite filtrar productos por cualquier combinación de los siguientes parámetros (todos opcionales):
-
-- `nombre`: filtra por nombre (contiene, case-insensitive)
-- `marca`: filtra por marca (exacto, case-insensitive)
-- `categoriaId`: filtra por id de categoría
-- `precioMin`: precio mínimo
-- `precioMax`: precio máximo
-- `page`: número de página (default: 0)
-- `size`: tamaño de página (default: 20)
-
-**Ejemplo:**
 ```
 
+#### POST `/categorias` *(ADMIN)* — Crear
+
+**Request**
+
+```json
+{ "nombre": "Lácteos", "parentId": null }
+```
+
+**Response**
+
+```json
+{ "id": 3, "nombre": "Lácteos", "parent": null }
+```
+
+**Validaciones**
+
+* `parentId` debe ser válido si se envía.
+* El nombre no puede repetirse al mismo nivel.
+  **Errores comunes**: 409 (duplicado), 404 (no existe).
+
+#### PUT `/categorias/{id}` *(ADMIN)* — Reemplazo total
+
+**Request**
+
+```json
+{ "nombre": "Snacks", "parentId": null }
+```
+
+#### DELETE `/categorias/{id}` *(ADMIN)*
+
+---
+
+### Producto
+
+#### GET `/producto` — Catálogo con filtros opcionales
+
+Parámetros: `nombre`, `marca`, `categoriaId`, `precioMin`, `precioMax`, `page`, `size`.
+
+**Ejemplo**
+
+```
 GET /producto?nombre=leche&marca=LaSerenisima&categoriaId=2&precioMin=100&precioMax=200&page=0&size=10
 ```
-=======
 
+Otras consultas:
 
-main
+* **GET** `/producto/catalogo` (público, mismos filtros)
+* **GET** `/producto/id/{id}`
+* **GET** `/producto/nombre/{nombreProducto}`
+* **GET** `/producto/marca/{marca}`
+* **GET** `/producto/categoria/{categoriaId}`
+* **GET** `/producto/precio?precioMin=..&precioMax=..`
 
-Devuelve una página de productos que cumplen con todos los filtros.
+Administración:
 
----
-
-## Endpoints de Carrito
-> Todos los endpoints requieren autenticación JWT.  
-> Agregar header: `Authorization: Bearer {token}` (setear en Postman o Insomnia).
-
-### Reglas de Acceso
-- Solo usuarios autenticados (USER) y administradores (ADMIN) pueden acceder.
-- Cada usuario solo puede acceder a su propio carrito.
-- El carrito se crea automáticamente al realizar la primera operación.
-- Los carritos inactivos por más de 6 horas se vacían automáticamente.
-
-### Estados del Carrito
-- `VACIO`: Carrito sin productos.
-- `ACTIVO`: Carrito con al menos un producto.
+* **POST** `/producto` *(ADMIN/Vendedor)*
+* **PUT** `/producto/{id}` *(ADMIN/Vendedor)*
+* **DELETE** `/producto/{id}` *(ADMIN/Vendedor)*
 
 ---
 
-### POST /carritos
-Crea un nuevo carrito vacío para el usuario autenticado.
-#### Response:
-```json
-{
-  "id": 1,
-  "usuarioId": 5,
-  "estado": "VACIO",
-  "items": []
-}
-```
-### GET /carritos
-Obtiene el carrito del usuario autenticado. Si no existe, crea uno vacío.
+### Carrito (JWT requerido)
 
-### Response:
+**Reglas**
+
+* Cada usuario maneja **su** carrito.
+* Se crea automáticamente con la primera operación.
+
+**Estados**
+
+* `VACIO` (sin productos)
+* `ACTIVO` (con productos)
+
+#### POST `/carritos` — Crea vacío (si no existe)
+
+**Response**
+
+```json
+{ "id": 1, "estado": "VACIO", "items": [] }
+```
+
+#### GET `/carritos` — Obtiene (o crea)
+
+**Response**
+
 ```json
 {
   "id": 1,
-  "usuarioId": 5,
   "estado": "ACTIVO",
   "items": [
-    {
-      "productoId": 10,
-      "nombre": "Leche",
-      "cantidad": 2,
-      "precio": 120.50
-    },
-    {
-      "productoId": 15,
-      "nombre": "Pan",
-      "cantidad": 1,
-      "precio": 80.00
-    }
+    { "productoId": 10, "nombre": "Leche", "cantidad": 2, "precioUnitario": 120.50, "subtotal": 241.00 },
+    { "productoId": 15, "nombre": "Pan",   "cantidad": 1, "precioUnitario": 80.00,  "subtotal": 80.00 }
   ]
 }
 ```
 
-### PATCH /carritos/{productoId}
-Agrega un producto al carrito o incrementa su cantidad.
-Parametros: (Opcional, default=1) Cantidad a agregar
-### Response
-'''json
-{
-  "id": 1,
-  "usuarioId": 5,
-  "estado": "ACTIVO",
-  "items": [
-    {
-      "productoId": 10,
-      "nombre": "Leche",
-      "cantidad": 3,
-      "precio": 120.50
-    }
-  ]
-}
-'''
-### DELETE /carritos/{productoId}
-Elimina o reduce la cantidad de un producto del carrito.
-Parámetros: cantidad, (Opcional, default=1) Cantidad a eliminar.
+#### PATCH `/carritos/productos/{productoId}?cantidad=1` — Agregar/incrementar
 
-'''json
-{
-  "id": 1,
-  "usuarioId": 5,
-  "estado": "ACTIVO",
-  "items": [
-    {
-      "productoId": 10,
-      "nombre": "Leche",
-      "cantidad": 1,
-      "precio": 120.50
-    }
-  ]
-}
+**Response**
 
-'''
-
-### DELETE /carritos
-Vacía completamente el carrito del usuario.
-
-Response:
-'''json
-{
-  "id": 1,
-  "usuarioId": 5,
-  "estado": "VACIO",
-  "items": []
-}
-
-
-'''
-### Validaciones y Errores
-Producto no encontrado: 404 Not Found
-
-Stock insuficiente: 400 Bad Request
-
-Cantidad inválida (≤0): 400 Bad Request
-
-Producto desactivado: 400 Bad Request
-
-Carrito ya existe: 409 Conflict
-
-Carrito vacío: 400 Bad Request (al intentar eliminar productos)
-
-### Extra:
-Los precios se mantienen fijos al momento de agregar al carrito
-
-El sistema valida stock suficiente antes de agregar productos
-
-No se pueden agregar productos desactivados
-
-El usuario solo puede modificar su propio carrito
-
-Los administradores pueden acceder a todos los carritos
------------
-## Endpoints de Orden  
-> Todos los endpoints requieren autenticación JWT.  
-> Agregar header: `Authorization: Bearer {token}` (setear en Postman o Insomnia).  
-
-### Reglas de Acceso  
-- Solo usuarios autenticados (USER) y administradores (ADMIN) pueden acceder.  
-- Cada usuario solo puede acceder a sus propias órdenes.  
-- Las órdenes se crean al finalizar la compra del carrito.  
-- El stock se actualiza automáticamente al crear una orden.  
-
-### Estados de Orden  
-- `FINALIZADA`: Orden completada y pagada.  
-
-### POST /ordenes  
-Finaliza la compra del carrito activo y crea una nueva orden.  
-Ahora permite especificar una dirección de envío o indicar retiro en tienda.
-
-#### Request:
-Para envío a domicilio (con dirección):
 ```json
 {
-  "direccionId": 123
+  "id": 1,
+  "estado": "ACTIVO",
+  "items": [
+    { "productoId": 10, "nombre": "Leche", "cantidad": 3, "precioUnitario": 120.50, "subtotal": 361.50 }
+  ]
 }
 ```
-Para retiro en tienda:
+
+#### DELETE `/carritos/items/{itemId}` — Quitar item (o reducir)
+
+#### DELETE `/carritos` — Vaciar carrito
+
+**Validaciones y errores**
+
+* 404 Producto no encontrado
+* 400 Stock insuficiente / cantidad ≤ 0 / producto desactivado / carrito vacío
+* 409 Carrito ya existe
+
+**Extra**
+
+* El **precio se “congela”** al agregar al carrito.
+
+---
+
+### Orden (JWT requerido)
+
+**Reglas**
+
+* Las órdenes se crean al finalizar compra del carrito.
+* Se descuenta stock automáticamente.
+* El usuario sólo ve sus órdenes.
+
+**Estado**
+
+* `FINALIZADA`
+
+#### POST `/ordenes` — Finalizar compra
+
+**Request (envío a domicilio)**
+
 ```json
-{
-  "direccionId": null
-}
+{ "direccionId": 123 }
 ```
-O bien, puedes omitir el campo para retiro en tienda:
+
+**Request (retiro en tienda)**
+
 ```json
 {}
 ```
 
-- `direccionId` debe ser el ID de una dirección válida del usuario, o `null` para retiro en tienda.
-- Si la dirección no pertenece al usuario, devuelve 404 Not Found o 403 Forbidden.
+**Response**
 
-#### Response:  
-```json  
-{  
-  "id": 1,  
-  "usuarioId": 5,  
-  "fecha": "2024-05-15T14:30:00",  
-  "estado": "FINALIZADA",  
-  "total": 320.50,  
-  "items": [  
-    {  
-      "productoId": 10,  
-      "nombreProducto": "Leche",  
-      "cantidad": 2,  
-      "precioUnitario": 120.50  
-    },  
-    {  
-      "productoId": 15,  
-      "nombreProducto": "Pan",  
-      "cantidad": 1,  
-      "precioUnitario": 80.00  
-    }  
-  ]  
+```json
+{
+  "id": 1,
+  "fecha": "2024-05-15T14:30:00",
+  "estado": "FINALIZADA",
+  "subtotal": 321.00,
+  "descuentoTotal": 0.00,
+  "total": 321.00,
+  "direccion": "Calle 123, Ciudad",
+  "items": [
+    { "productoId": 10, "nombre": "Leche", "cantidad": 2, "precioUnitario": 120.50, "subtotal": 241.00 },
+    { "productoId": 15, "nombre": "Pan",   "cantidad": 1, "precioUnitario": 80.00,  "subtotal": 80.00  }
+  ]
 }
 ```
+
+#### GET `/ordenes/usuarios/{id}` — Historial del usuario
+
+**Response**
+
+```json
+[
+  {
+    "id": 1,
+    "fecha": "2024-05-15T14:30:00",
+    "estado": "FINALIZADA",
+    "total": 321.00,
+    "items": [ { "productoId": 10, "nombre": "Leche", "cantidad": 2, "precioUnitario": 120.50, "subtotal": 241.00 } ]
+  }
+]
+```
+
+#### GET `/ordenes/{ordenId}/usuarios/{id}` — Detalle de una orden
+
+**Errores comunes**: 400 (carrito vacío/stock), 403 (no te pertenece), 404 (no existe).
+
+**Extra**
+
+* Precios se **bloquean** al crear la orden.
+* Las órdenes son **inmutables**.
+
 ---
 
-### GET /ordenes/usuarios/{id}
-Obtiene todas las órdenes de un usuario específico.
+## Ejemplos rápidos (curl)
 
-Response:
-'''json
-[  
-  {  
-    "id": 1,  
-    "usuarioId": 5,  
-    "fecha": "2024-05-15T14:30:00",  
-    "estado": "FINALIZADA",  
-    "total": 320.50,  
-    "items": [  
-      {  
-        "productoId": 10,  
-        "nombreProducto": "Leche",  
-        "cantidad": 2,  
-        "precioUnitario": 120.50  
-      }  
-    ]  
-  }  
-]  
-'''
+```bash
+# Registro
+curl -X POST http://localhost:4040/usuarios \
+  -H "Content-Type: application/json" \
+  -d '{"username":"usuario1","email":"u1@mail.com","password":"1234","nombre":"Juan","apellido":"Perez","rol":"USER"}'
 
-### GET /ordenes/{ordenId}/usuarios/{id}
-Obtiene una orden específica de un usuario.
+# Login
+curl -X POST http://localhost:4040/usuarios/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"usuario1","password":"1234"}'
 
-'''json
-{  
-  "id": 1,  
-  "usuarioId": 5,  
-  "fecha": "2024-05-15T14:30:00",  
-  "estado": "FINALIZADA",  
-  "total": 320.50,  
-  "items": [  
-    {  
-      "productoId": 10,  
-      "nombreProducto": "Leche",  
-      "cantidad": 2,  
-      "precioUnitario": 120.50  
-    }  
-  ]  
-}  
-'''
+# Usar token
+TOKEN="PEGA_TU_TOKEN_ACA"
 
-### Validaciones y Errores
-Carrito vacío: 400 Bad Request (al intentar finalizar compra)
+# Perfil
+curl http://localhost:4040/usuarios/me -H "Authorization: Bearer $TOKEN"
 
-Stock insuficiente: 400 Bad Request
+# Crear dirección
+curl -X POST http://localhost:4040/direcciones \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"calle":"Av. Siempre Viva","numero":"742","pisoDepto":"2B","ciudad":"Springfield","provincia":"Buenos Aires","codigoPostal":"1234","tipoVivienda":"DEPARTAMENTO"}'
+```
 
-Producto desactivado: 400 Bad Request
+---
 
-Orden no encontrada: 404 Not Found
+## Postman
 
-Usuario no tiene órdenes: 404 Not Found
+* Podés **importar** la API desde el link OpenAPI: `http://localhost:4040/v3/api-docs`
+  (Postman → *Import* → *Link* → pegás la URL).
+* Sugerencia de Environment:
 
-### Extra:
-El precio de los productos se bloquea al momento de crear la orden
+  * `baseUrl = http://localhost:4040`
+  * `token = (se completa tras login)`
 
-El stock se reduce automáticamente al crear la orden
+---
 
-No se pueden incluir productos desactivados
+## Estructura del proyecto
 
-Las órdenes son inmutables una vez creadas
+```
+src/
+ └─ main/
+     ├─ java/com/uade/tpo/almacen/
+     │   ├─ controller/    # REST controllers
+     │   ├─ entity/        # Entidades JPA
+     │   ├─ repository/    # Spring Data Repos
+     │   ├─ service/       # Lógica de negocio
+     │   └─ security/      # JwtUtil, JwtRequestFilter, SecurityConfig
+     └─ resources/
+         ├─ application.properties
+         └─ data.sql / schema.sql (opcional)
+```
 
-Los administradores pueden acceder a todas las órdenes
+---
 
-Los usuarios solo pueden ver sus propias órdenes
+## Errores y Troubleshooting
 
+* **401 Unauthorized**: falta/expiró el token.
+* **403 Forbidden**: querés acceder/modificar algo que no te pertenece o sin rol.
+* **404 Not Found**: recurso inexistente.
+* **409 Conflict**: duplicados (usuario/categoría).
+* **400 Bad Request**: validaciones (stock insuficiente, cantidad ≤ 0, etc.).
 
+**Swagger 500 (`ControllerAdviceBean`)**
+Asegurarse de usar `springdoc-openapi-starter-webmvc-ui` **2.x** con Spring Boot **3.x** (ya configurado).
 
+**Swagger 403**
+Verificar en `SecurityConfig` que estén permitidos:
 
+```
+/v3/api-docs/**, /swagger-ui/**, /swagger-ui.html
+```
+
+---
+
+## Autores
+
+**Grupo 13 — ALMACÉN**
+
+* Integrantes: Valentino Gonzalo Diaz Imbernon *LU* 1203006
+* Materia: Aplicaciones Interactivas – UADE
+* Docente: Gisele Gabriela Cuello
 
 
 

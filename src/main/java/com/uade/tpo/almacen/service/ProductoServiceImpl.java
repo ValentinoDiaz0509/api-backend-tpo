@@ -47,7 +47,8 @@ public class ProductoServiceImpl implements ProductoService {
                                            Pageable pageable) {
 
         Specification<Producto> spec = Specification
-                .where(nombreLike(nombre))
+                .where(activoConStock())
+                .and(nombreLike(nombre))
                 .and(marcaLike(marca))
                 .and(categoriaIdEquals(categoriaId))
                 .and(precioMin(precioMin))
@@ -59,34 +60,39 @@ public class ProductoServiceImpl implements ProductoService {
     // ==========================
     // Finders usados por el controller
     // ==========================
+    private Optional<Producto> filtrarProducto(Optional<Producto> producto) {
+        return producto.filter(p -> p.getStock() > p.getStockMinimo()
+                && "activo".equalsIgnoreCase(p.getEstado()));
+    }
+
     @Override
     public Optional<Producto> getProductoById(int id) {
-        return productoRepo.findById(id);
+        return filtrarProducto(productoRepo.findById(id));
     }
 
     @Override
     public Optional<Producto> getProductoByName(String nombreProducto) {
-        return productoRepo.findFirstByNombreIgnoreCase(nombreProducto);
+        return filtrarProducto(productoRepo.findFirstByNombreIgnoreCase(nombreProducto));
     }
 
     @Override
     public Optional<Producto> getProductoByMarca(String marca) {
-        return productoRepo.findFirstByMarcaIgnoreCase(marca);
+        return filtrarProducto(productoRepo.findFirstByMarcaIgnoreCase(marca));
     }
 
     @Override
     public Optional<Producto> getProductoByCategory(Categoria categoria) {
-        return productoRepo.findFirstByCategoria(categoria);
+        return filtrarProducto(productoRepo.findFirstByCategoria(categoria));
     }
 
     @Override
     public Optional<Producto> getProductoByPrecioMaximo(BigDecimal precioMax) {
-        return productoRepo.findFirstByPrecioLessThanEqual(precioMax);
+        return filtrarProducto(productoRepo.findFirstByPrecioLessThanEqual(precioMax));
     }
 
     @Override
     public Optional<Producto> getProductoByPrecioMinimo(BigDecimal precioMin) {
-        return productoRepo.findFirstByPrecioGreaterThanEqual(precioMin);
+        return filtrarProducto(productoRepo.findFirstByPrecioGreaterThanEqual(precioMin));
     }
 
     @Override
@@ -95,7 +101,7 @@ public class ProductoServiceImpl implements ProductoService {
         BigDecimal min = (precioMin == null) ? BigDecimal.ZERO : precioMin;
         BigDecimal max = (precioMax == null) ? min : precioMax;
         if (max.compareTo(min) < 0) { BigDecimal t = min; min = max; max = t; }
-        return productoRepo.findFirstByPrecioBetween(min, max);
+        return filtrarProducto(productoRepo.findFirstByPrecioBetween(min, max));
     }
 
     // ==========================

@@ -43,4 +43,11 @@ public class ProductoSpecifications {
         }
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("precio"), max);
     }
+
+    public static Specification<Producto> activoConStock() {
+        return (root, query, cb) -> cb.and(
+                cb.equal(cb.lower(root.get("estado")), "activo"),
+                cb.greaterThan(root.get("stock"), root.get("stockMinimo"))
+        );
+    }
 }

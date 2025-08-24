@@ -51,11 +51,16 @@ public class ProductoController {
         Page<Producto> productos = productoService.filtrarProductos(
                 nombre, marca, categoriaId, precioMin, precioMax, PageRequest.of(pageNum, pageSize));
 
-        if (productos.isEmpty()) {
+        var list = productos.stream()
+                .filter(p -> p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado()))
+                .map(ProductoDTO::new)
+                .collect(Collectors.toList());
+
+        Page<ProductoDTO> productosDTO = new PageImpl<>(list, productos.getPageable(), list.size());
+
+        if (productosDTO.isEmpty()) {
             throw new ProductoNotFoundException("No hay productos que coincidan con los filtros");
         }
-
-        Page<ProductoDTO> productosDTO = productos.map(ProductoDTO::new);
         return ResponseEntity.ok(productosDTO);
     }
 
@@ -66,7 +71,10 @@ public class ProductoController {
         }
         Optional<Producto> result = productoService.getProductoById(id);
         if (result.isPresent()) {
-            return ResponseEntity.ok(new ProductoDTO(result.get()));
+            Producto p = result.get();
+            if (p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado())) {
+                return ResponseEntity.ok(new ProductoDTO(p));
+            }
         }
         throw new ProductoNotFoundException("No se encontró el producto con id: " + id);
     }
@@ -79,7 +87,10 @@ public class ProductoController {
         }
         Optional<Producto> result = productoService.getProductoByName(nombreProducto);
         if (result.isPresent()) {
-            return ResponseEntity.ok(new ProductoDTO(result.get()));
+            Producto p = result.get();
+            if (p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado())) {
+                return ResponseEntity.ok(new ProductoDTO(p));
+            }
         }
         throw new ProductoNotFoundException("No se encontró el producto con nombre: " + nombreProducto);
     }
@@ -94,7 +105,10 @@ public class ProductoController {
         if (categoriaOptional.isPresent()) {
             Optional<Producto> producto = productoService.getProductoByCategory(categoriaOptional.get());
             if (producto.isPresent()) {
-                return ResponseEntity.ok(new ProductoDTO(producto.get()));
+                Producto p = producto.get();
+                if (p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado())) {
+                    return ResponseEntity.ok(new ProductoDTO(p));
+                }
             }
         }
         throw new ProductoNotFoundException("No se encontró el producto con categoría: " + categoriaId);
@@ -108,7 +122,10 @@ public class ProductoController {
         }
         Optional<Producto> result = productoService.getProductoByMarca(marca);
         if (result.isPresent()) {
-            return ResponseEntity.ok(new ProductoDTO(result.get()));
+            Producto p = result.get();
+            if (p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado())) {
+                return ResponseEntity.ok(new ProductoDTO(p));
+            }
         }
         throw new ProductoNotFoundException("No se encontró el producto con marca: " + marca);
     }
@@ -134,7 +151,10 @@ public class ProductoController {
         }
 
         if (result.isPresent()) {
-            return ResponseEntity.ok(new ProductoDTO(result.get()));
+            Producto p = result.get();
+            if (p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado())) {
+                return ResponseEntity.ok(new ProductoDTO(p));
+            }
         }
         throw new ProductoNotFoundException(
                 "No se encontraron productos con precio máximo: " + precioMax + " y mínimo: " + precioMin);

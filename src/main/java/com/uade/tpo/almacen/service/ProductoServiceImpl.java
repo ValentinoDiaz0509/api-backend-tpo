@@ -15,10 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.uade.tpo.almacen.spec.ProductoSpecifications.*; 
+import static com.uade.tpo.almacen.spec.ProductoSpecifications.*;
 
 @Service
 public class ProductoServiceImpl implements ProductoService {
@@ -156,7 +157,13 @@ public class ProductoServiceImpl implements ProductoService {
         if (req.getPrecio() != null) {
             if (p.getPrecio() == null || req.getPrecio().compareTo(p.getPrecio()) != 0) {
                 if (p.getPrecio() != null) {
-                    historialRepo.save(new HistorialPrecio(p, p.getPrecio(), req.getPrecio()));
+                    // Guardamos precio ANTERIOR con fecha actual
+                    historialRepo.save(new HistorialPrecio(
+                            null,
+                            p,
+                            p.getPrecio(),
+                            LocalDateTime.now()
+                    ));
                 }
                 p.setPrecio(req.getPrecio());
             }
@@ -236,7 +243,13 @@ public class ProductoServiceImpl implements ProductoService {
         if (nuevoPrecio != null) {
             if (p.getPrecio() == null || !nuevoPrecio.equals(p.getPrecio())) {
                 if (p.getPrecio() != null) {
-                    historialRepo.save(new HistorialPrecio(p, p.getPrecio(), nuevoPrecio));
+                    // Guardamos precio ANTERIOR con fecha actual
+                    historialRepo.save(new HistorialPrecio(
+                            null,
+                            p,
+                            p.getPrecio(),
+                            LocalDateTime.now()
+                    ));
                 }
                 p.setPrecio(nuevoPrecio);
             }
@@ -273,3 +286,4 @@ public class ProductoServiceImpl implements ProductoService {
         productoRepo.deleteById(id);
     }
 }
+

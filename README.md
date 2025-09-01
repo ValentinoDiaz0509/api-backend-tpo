@@ -1,4 +1,4 @@
-# TP Grupo 13 — **ALMACÉN** (Backend)
+# TP Grupo 14 — **ALMACÉN** (Backend)
 
 Backend REST para un mini–marketplace de supermercado: usuarios, direcciones, categorías, productos, carrito y órdenes.
 

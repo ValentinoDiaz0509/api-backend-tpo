@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -37,8 +38,7 @@ public class OrdenServiceImpl implements OrdenService {
 
     @Override
     @Transactional
-    public Orden finalizarCompra(Usuario usuario, Integer direccionId) {
-        // 1) Carrito ACTIVO con ítems
+    public Orden finalizarCompra(Usuario usuario, Long direccionId) {
         Carrito carrito = carritoRepo
                 .findByUsuarioIdAndEstadoConItems(usuario.getId(), EstadoCarrito.ACTIVO)
                 .orElseThrow(() -> new IllegalArgumentException("No hay carrito activo para el usuario"));
@@ -47,21 +47,21 @@ public class OrdenServiceImpl implements OrdenService {
             throw new IllegalStateException("El carrito está vacío");
         }
 
-        // 2) Crear orden base
         Orden orden = new Orden();
         orden.setUsuario(usuario);
-        orden.setEstado(EstadoOrden.PENDIENTE.name()); // Orden.estado es String
+        orden.setEstado(EstadoOrden.PENDIENTE.name());
         orden.setFechaCreacion(LocalDateTime.now());
-        orden.setTotal(BigDecimal.ZERO); // inicial para cumplir NOT NULL
+        orden.setTotal(BigDecimal.ZERO);
 
+        // ✅ corregido: usamos Long directamente
         if (direccionId != null) {
             Direccion direccion = direccionRepo.findById(direccionId)
                     .orElseThrow(() -> new IllegalArgumentException("Dirección no encontrada"));
-            orden.setDireccion(direccion); // campo Direccion en Orden
+            orden.setDireccion(direccion);
         }
+
         orden = ordenRepo.save(orden);
 
-        // 3) Generar detalles, controlar stock y calcular subtotal
         BigDecimal subtotal = BigDecimal.ZERO;
 
         for (ItemCarrito ic : carrito.getItemsCarrito()) {
@@ -72,19 +72,18 @@ public class OrdenServiceImpl implements OrdenService {
                 throw new IllegalStateException("Stock insuficiente para " + p.getNombre());
             }
 
-            // precio unitario (aplicando descuento del producto si existe)
             BigDecimal precioUnit = p.getPrecio();
             if (p.getDescuento() != null && p.getDescuento().compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal porc = p.getDescuento().divide(new BigDecimal("100"));
-                precioUnit = p.getPrecio().multiply(BigDecimal.ONE.subtract(porc)).setScale(2);
+                BigDecimal porc = p.getDescuento().divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                precioUnit = p.getPrecio().multiply(BigDecimal.ONE.subtract(porc))
+                        .setScale(2, RoundingMode.HALF_UP);
             }
 
             BigDecimal itemSubtotal = precioUnit
                     .multiply(BigDecimal.valueOf(ic.getCantidad()))
-                    .setScale(2);
+                    .setScale(2, RoundingMode.HALF_UP);
             subtotal = subtotal.add(itemSubtotal);
 
-            // Crear detalle
             DetalleOrden det = DetalleOrden.builder()
                     .cantidad(ic.getCantidad())
                     .precioUnitario(precioUnit)
@@ -94,17 +93,14 @@ public class OrdenServiceImpl implements OrdenService {
                     .build();
             detalleRepo.save(det);
 
-            // actualizar stock y ventas
             p.setStock(p.getStock() - ic.getCantidad());
             p.setVentasTotales(p.getVentasTotales() + ic.getCantidad());
             productoRepo.save(p);
         }
 
-        // 4) Total y persistir
-        orden.setTotal(subtotal.setScale(2));
+        orden.setTotal(subtotal.setScale(2, RoundingMode.HALF_UP));
         orden = ordenRepo.save(orden);
 
-        // 5) Vaciar carrito
         carrito.getItemsCarrito().clear();
         carrito.setEstado(EstadoCarrito.VACIO);
         carritoRepo.save(carrito);
@@ -112,24 +108,22 @@ public class OrdenServiceImpl implements OrdenService {
         return orden;
     }
 
-  @Override
-public Orden obtenerOrden(int usuarioId, int ordenId) {
-    Orden o = ordenRepo.findById(Long.valueOf(ordenId))
-            .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada"));
-    if (o.getUsuario() == null || o.getUsuario().getId() != usuarioId) {
-        throw new IllegalArgumentException("La orden no pertenece al usuario");
+    @Override
+    public Orden obtenerOrden(Long usuarioId, Long ordenId) {
+        Orden o = ordenRepo.findById(ordenId)
+                .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada"));
+        if (o.getUsuario() == null || !o.getUsuario().getId().equals(usuarioId)) {
+            throw new IllegalArgumentException("La orden no pertenece al usuario");
+        }
+        return o;
     }
-    return o;
-}
 
-@Override
-public List<Orden> obtenerOrdenes(int usuarioId) {
-    var usuario = usuarioRepo.findById(usuarioId)
-            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-    return ordenRepo.findByUsuarioOrderByFechaCreacionDesc(usuario);
-}
-
-
+    @Override
+    public List<Orden> obtenerOrdenes(Long usuarioId) {
+        var usuario = usuarioRepo.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        return ordenRepo.findByUsuarioOrderByFechaCreacionDesc(usuario);
+    }
 
     @Override
     public OrdenResponseDTO convertirAOrdenResponse(Orden o) {
@@ -146,7 +140,7 @@ public List<Orden> obtenerOrdenes(int usuarioId) {
         String direccionStr = (o.getDireccion() == null)
                 ? null
                 : o.getDireccion().getCalle() + " " + o.getDireccion().getNumero()
-                  + ", " + o.getDireccion().getCiudad();
+                + ", " + o.getDireccion().getCiudad();
 
         BigDecimal subtotal = items.stream()
                 .map(ItemOrdenDTO::subtotal)
@@ -154,10 +148,10 @@ public List<Orden> obtenerOrdenes(int usuarioId) {
 
         return new OrdenResponseDTO(
                 o.getId(),
-                o.getFechaCreacion(),   // ahora se llama fechaCreacion
-                o.getEstado(),          // String (antes era Enum.name())
+                o.getFechaCreacion(),
+                o.getEstado(),
                 subtotal,
-                BigDecimal.ZERO,        // no tenemos campo descuentoTotal en Orden
+                BigDecimal.ZERO,
                 o.getTotal(),
                 direccionStr,
                 items

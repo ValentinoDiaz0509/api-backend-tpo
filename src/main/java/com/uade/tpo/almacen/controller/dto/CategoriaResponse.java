@@ -3,15 +3,13 @@ package com.uade.tpo.almacen.controller.dto;
 import java.util.List;
 
 public class CategoriaResponse {
-    private int id;
+    private Long id;
     private String nombre;
-    private Integer parentId;      
-    private String parentNombre;   
+    private Long parentId;
+    private String parentNombre;
     private List<CategoriaResponse> subcategorias;
 
-    public CategoriaResponse() {}
-
-    public CategoriaResponse(int id, String nombre, Integer parentId, String parentNombre, List<CategoriaResponse> subcategorias) {
+    public CategoriaResponse(Long id, String nombre, Long parentId, String parentNombre, List<CategoriaResponse> subcategorias) {
         this.id = id;
         this.nombre = nombre;
         this.parentId = parentId;
@@ -19,15 +17,18 @@ public class CategoriaResponse {
         this.subcategorias = subcategorias;
     }
 
-    public int getId() { return id; }
-    public String getNombre() { return nombre; }
-    public Integer getParentId() { return parentId; }
-    public String getParentNombre() { return parentNombre; }
-    public List<CategoriaResponse> getSubcategorias() { return subcategorias; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(int id) { this.id = id; }
+    public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
-    public void setParentId(Integer parentId) { this.parentId = parentId; }
+
+    public Long getParentId() { return parentId; }
+    public void setParentId(Long parentId) { this.parentId = parentId; }
+
+    public String getParentNombre() { return parentNombre; }
     public void setParentNombre(String parentNombre) { this.parentNombre = parentNombre; }
+
+    public List<CategoriaResponse> getSubcategorias() { return subcategorias; }
     public void setSubcategorias(List<CategoriaResponse> subcategorias) { this.subcategorias = subcategorias; }
 }

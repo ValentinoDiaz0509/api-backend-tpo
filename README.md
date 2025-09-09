@@ -1,6 +1,5 @@
-# TP Grupo — **ALMACÉN** (Backend)
+**ALMACÉN** (Backend)
 
-Backend REST para un mini–marketplace de supermercado: usuarios, direcciones, categorías, productos, carrito y órdenes.
 
 ![Java](https://img.shields.io/badge/Java-21-007396?logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-6DB33F?logo=springboot)

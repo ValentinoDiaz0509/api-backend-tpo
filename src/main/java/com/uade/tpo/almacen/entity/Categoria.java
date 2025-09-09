@@ -20,8 +20,9 @@ import lombok.*;
 public class Categoria {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Long id;
+
 
     @NotBlank
     @Size(max = 50)

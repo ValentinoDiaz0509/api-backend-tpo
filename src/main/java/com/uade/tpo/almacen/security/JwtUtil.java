@@ -1,75 +1,55 @@
 package com.uade.tpo.almacen.security;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+
+import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secretKey;
+    private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256); 
+    private final long expiration = 86400000; 
 
-    private static final long EXPIRATION_TIME = 1000L * 60 * 60; // 1 hora
-
-    private Key key() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-    }
-
-    // Método original
-    public String generateToken(String username) {
-        return createToken(new HashMap<>(), username);
-    }
-
-    // Con rol en los claims
     public String generateToken(String username, String rol) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("rol", rol);
-        return createToken(claims, username);
-    }
-
-    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key(), SignatureAlgorithm.HS256)
+                .setSubject(username)
+                .claim("rol", rol) // NO "ROLE_USER", solo "USER" o "ADMIN"
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
     public String extractRol(String token) {
-        Object r = extractAllClaims(token).get("rol");
-        return r == null ? null : r.toString();
-    }
-
-    private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(key())
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
-                .getBody();
+                .getBody()
+                .get("rol", String.class); // devuelve "USER" o "ADMIN"
     }
 
     public boolean isTokenValid(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return (extractedUsername != null && extractedUsername.equals(username) && !isTokenExpired(token));
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
+        try {
+            String extracted = extractUsername(token);
+            return extracted.equals(username);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
+

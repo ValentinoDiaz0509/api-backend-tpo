@@ -20,4 +20,3 @@ public class Imagen {
     @JsonIgnore
     private Producto producto;
 }
-

@@ -1,5 +1,7 @@
 package com.uade.tpo.almacen.excepciones;
 
-public class CarritoVacioException extends AlmacenException {
-    public CarritoVacioException(String message) { super(message); }
+public class CategoriaNoEncontradaException extends RuntimeException {
+    public CategoriaNoEncontradaException(String message) {
+        super(message);
+    }
 }

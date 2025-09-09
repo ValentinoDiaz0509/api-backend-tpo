@@ -23,4 +23,3 @@ public class HistorialPrecio {
 
     private LocalDateTime fechaCambio;
 }
-

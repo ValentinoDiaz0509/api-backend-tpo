@@ -4,7 +4,7 @@ import com.uade.tpo.almacen.entity.Categoria;
 import com.uade.tpo.almacen.entity.HistorialPrecio;
 import com.uade.tpo.almacen.entity.Producto;
 import com.uade.tpo.almacen.entity.Imagen;
-import com.uade.tpo.almacen.entity.dto.ProductoRequest; // <- DTO en entity.dto
+import com.uade.tpo.almacen.entity.dto.ProductoRequest;
 import com.uade.tpo.almacen.repository.CategoriaRepository;
 import com.uade.tpo.almacen.repository.HistorialPrecioRepository;
 import com.uade.tpo.almacen.repository.ProductoRepository;
@@ -58,16 +58,13 @@ public class ProductoServiceImpl implements ProductoService {
         return productoRepo.findAll(spec, pageable);
     }
 
-    // ==========================
-    // Finders usados por el controller
-    // ==========================
     private Optional<Producto> filtrarProducto(Optional<Producto> producto) {
         return producto.filter(p -> p.getStock() > p.getStockMinimo()
                 && "activo".equalsIgnoreCase(p.getEstado()));
     }
 
     @Override
-    public Optional<Producto> getProductoById(int id) {
+    public Optional<Producto> getProductoById(Long id) {
         return filtrarProducto(productoRepo.findById(id));
     }
 
@@ -124,15 +121,12 @@ public class ProductoServiceImpl implements ProductoService {
         p.setDescripcion(req.getDescripcion());
         p.setMarca(req.getMarca());
         p.setPrecio(req.getPrecio());
-
-        // estos campos deben existir en la entidad Producto; si no, quitarlos
         p.setUnidadMedida(req.getUnidadMedida());
         p.setDescuento(req.getDescuento());
         p.setStock(req.getStock());
         p.setStockMinimo(req.getStockMinimo());
         p.setVentasTotales(req.getVentasTotales());
         p.setEstado(req.getEstado());
-
         p.setCategoria(cat);
 
         if (req.getImagenes() != null) {
@@ -149,15 +143,13 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional
-    public Producto updateProducto(int id, ProductoRequest req) {
+    public Producto updateProducto(Long id, ProductoRequest req) {
         Producto p = productoRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + id));
 
-        // Historial de precio si cambia
         if (req.getPrecio() != null) {
             if (p.getPrecio() == null || req.getPrecio().compareTo(p.getPrecio()) != 0) {
                 if (p.getPrecio() != null) {
-                    // Guardamos precio ANTERIOR con fecha actual
                     historialRepo.save(new HistorialPrecio(
                             null,
                             p,
@@ -165,6 +157,7 @@ public class ProductoServiceImpl implements ProductoService {
                             LocalDateTime.now()
                     ));
                 }
+                
                 p.setPrecio(req.getPrecio());
             }
         }
@@ -179,7 +172,7 @@ public class ProductoServiceImpl implements ProductoService {
         if (req.getVentasTotales() != null) p.setVentasTotales(req.getVentasTotales());
         if (req.getEstado() != null) p.setEstado(req.getEstado());
 
-        if (req.getCategoria_id() > 0) {
+        if (req.getCategoria_id() != null && req.getCategoria_id() > 0) {
             Categoria cat = categoriaRepo.findById(req.getCategoria_id())
                     .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada: " + req.getCategoria_id()));
             p.setCategoria(cat);
@@ -200,25 +193,22 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional
-    public void deleteProducto(int id) {
+    public void deleteProducto(Long id) {
         productoRepo.deleteById(id);
     }
 
-    // ==========================
-    // (Legacy)
-    // ==========================
     @Override
     public List<Producto> listar() { return productoRepo.findAll(); }
 
     @Override
-    public Producto obtener(int id) {
+    public Producto obtener(Long id) {
         return productoRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
     }
 
     @Override
     @Transactional
-    public Producto crear(Producto p, int categoriaId) {
+    public Producto crear(Producto p, Long categoriaId) {
         Categoria cat = categoriaRepo.findById(categoriaId)
                 .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada"));
         if (productoRepo.existsByNombreAndDescripcionAndMarcaAndCategoria(
@@ -236,14 +226,13 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional
-    public Producto actualizar(int id, Producto cambios, Integer categoriaId) {
+    public Producto actualizar(Long id, Producto cambios, Long categoriaId) {
         Producto p = obtener(id);
 
         BigDecimal nuevoPrecio = cambios.getPrecio();
         if (nuevoPrecio != null) {
             if (p.getPrecio() == null || !nuevoPrecio.equals(p.getPrecio())) {
                 if (p.getPrecio() != null) {
-                    // Guardamos precio ANTERIOR con fecha actual
                     historialRepo.save(new HistorialPrecio(
                             null,
                             p,
@@ -282,7 +271,7 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public void eliminar(int id) {
+    public void eliminar(Long id) {
         productoRepo.deleteById(id);
     }
 }

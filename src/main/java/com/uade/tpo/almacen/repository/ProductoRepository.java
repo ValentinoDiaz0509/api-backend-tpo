@@ -1,6 +1,8 @@
 package com.uade.tpo.almacen.repository;
 
 import com.uade.tpo.almacen.entity.Categoria;
+import com.uade.tpo.almacen.entity.DetalleOrden;
+import com.uade.tpo.almacen.entity.ItemCarrito;
 import com.uade.tpo.almacen.entity.Producto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,7 +14,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-public interface ProductoRepository extends JpaRepository<Producto, Integer>, JpaSpecificationExecutor<Producto> {
+public interface ProductoRepository extends JpaRepository<Producto, Long>, JpaSpecificationExecutor<Producto> {
+public interface ItemCarritoRepository extends JpaRepository<ItemCarrito, Long> {}
+public interface DetalleOrdenRepository extends JpaRepository<DetalleOrden, Integer> {}
+
 
     @Override
     @EntityGraph(attributePaths = {"categoria", "imagenes"})

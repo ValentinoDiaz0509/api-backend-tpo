@@ -11,7 +11,7 @@ public interface CategoriaService {
 
     Page<Categoria> getCategorias(Pageable pageable);
 
-    Optional<Categoria> getCategoriaById(int id);
+    Optional<Categoria> getCategoriaById(Long id);  
 
     long countCategorias();
 
@@ -19,7 +19,7 @@ public interface CategoriaService {
 
     Categoria createCategory(CategoryRequest req);
 
-    void deleteCategory(int id);
+    void deleteCategory(Long id);  
 
-    Categoria updateCategory(int id, CategoryRequest req);
+    Categoria updateCategory(Long id, CategoryRequest req);  
 }

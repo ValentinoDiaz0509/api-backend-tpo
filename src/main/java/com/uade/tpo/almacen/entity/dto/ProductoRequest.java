@@ -19,10 +19,7 @@ public class ProductoRequest {
     private Integer ventasTotales;
     private String estado;
 
-    // Usar Integer para poder chequear null
-    private Integer categoria_id;
+    private Long categoria_id; 
 
-    // NUEVO: imágenes (urls/base64/lo que uses)
-    // La inicializo para evitar NPE y que getImagenes() exista siempre.
     private List<String> imagenes = new ArrayList<>();
 }

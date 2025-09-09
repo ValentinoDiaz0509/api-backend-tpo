@@ -10,7 +10,7 @@ import com.uade.tpo.almacen.entity.Imagen;
 import com.uade.tpo.almacen.entity.Producto;
 
 public record ProductoDTO(
-    @JsonProperty("id") int id,
+    @JsonProperty("id") Long id,
     @JsonProperty("nombre") String nombre,
     @JsonProperty("descripcion") String descripcion,
     @JsonProperty("imagenes") List<String> imagenes,

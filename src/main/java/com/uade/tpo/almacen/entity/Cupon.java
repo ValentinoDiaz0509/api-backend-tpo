@@ -56,3 +56,4 @@ public class Cupon {
                 && montoCompra.compareTo(minimoCompra) >= 0;     // cumple mínimo
     }
 }
+

@@ -20,7 +20,7 @@ public class DireccionService {
         return direccionRepository.findByUsuario(usuario);
     }
 
-    public Optional<Direccion> getDireccionById(int id) {
+    public Optional<Direccion> getDireccionById(Long id) {   // ✅ cambiado a Long
         return direccionRepository.findById(id);
     }
 
@@ -28,7 +28,7 @@ public class DireccionService {
         return direccionRepository.save(direccion);
     }
 
-    public void deleteDireccion(int id) {
+    public void deleteDireccion(Long id) {   // ✅ cambiado a Long
         direccionRepository.deleteById(id);
     }
 }

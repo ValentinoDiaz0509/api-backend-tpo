@@ -85,3 +85,4 @@ public class ManejoErrores {
         return body(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno: " + ex.getMessage());
     }
 }
+

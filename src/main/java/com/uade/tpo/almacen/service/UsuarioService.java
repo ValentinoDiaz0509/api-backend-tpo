@@ -1,5 +1,6 @@
 package com.uade.tpo.almacen.service;
 
+import com.uade.tpo.almacen.entity.Rol;
 import com.uade.tpo.almacen.entity.Usuario;
 import com.uade.tpo.almacen.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
@@ -23,7 +24,6 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-   
     @Transactional(readOnly = true)
     public List<Usuario> getAllUsuarios() {
         return usuarioRepository.findAll();
@@ -35,14 +35,8 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Usuario> getUsuarioById(int id) {
+    public Optional<Usuario> getUsuarioById(Long id) {   // 👈 cambiado a Long
         return usuarioRepository.findById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public Usuario getUsuarioByIdOrThrow(int id) {
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
     }
 
     @Transactional(readOnly = true)
@@ -56,7 +50,7 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Usuario> getUsuariosByRol(String rol) {
+    public List<Usuario> getUsuariosByRol(Rol rol) {
         return usuarioRepository.findByRol(rol);
     }
 
@@ -70,7 +64,6 @@ public class UsuarioService {
         return usuarioRepository.existsByEmail(email);
     }
 
-    
     @Transactional
     public Usuario createUsuario(Usuario usuario) {
         if (usuarioRepository.existsByUsername(usuario.getUsername())) {
@@ -82,16 +75,17 @@ public class UsuarioService {
 
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
+        // 👇 Rol por defecto USER
+        if (usuario.getRol() == null) {
+            usuario.setRol(Rol.ROLE_USER);
+        }
+
         return usuarioRepository.save(usuario);
     }
 
     @Transactional
     public Usuario updateUsuario(Usuario cambios) {
-        if (cambios.getId() == 0) {
-            throw new IllegalArgumentException("ID inválido para actualización.");
-        }
-
-        Usuario existente = usuarioRepository.findById(cambios.getId())
+        Usuario existente = usuarioRepository.findById(cambios.getId()) // 👈 ahora Long
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + cambios.getId()));
 
         if (cambios.getUsername() != null && !cambios.getUsername().equals(existente.getUsername())) {
@@ -100,6 +94,7 @@ public class UsuarioService {
             }
             existente.setUsername(cambios.getUsername());
         }
+
         if (cambios.getEmail() != null && !cambios.getEmail().equals(existente.getEmail())) {
             if (usuarioRepository.existsByEmail(cambios.getEmail())) {
                 throw new IllegalArgumentException("El email ya está en uso.");
@@ -110,6 +105,7 @@ public class UsuarioService {
         if (cambios.getPassword() != null && !cambios.getPassword().isBlank()) {
             existente.setPassword(passwordEncoder.encode(cambios.getPassword()));
         }
+
         if (cambios.getNombre() != null) existente.setNombre(cambios.getNombre());
         if (cambios.getApellido() != null) existente.setApellido(cambios.getApellido());
         if (cambios.getRol() != null) existente.setRol(cambios.getRol());
@@ -118,18 +114,10 @@ public class UsuarioService {
     }
 
     @Transactional
-    public void deleteUsuarioById(int id) {
+    public void deleteUsuarioById(Long id) {   // 👈 cambiado a Long
         if (!usuarioRepository.existsById(id)) {
             throw new IllegalArgumentException("Usuario no encontrado con ID: " + id);
         }
         usuarioRepository.deleteById(id);
-    }
-
-    @Transactional
-    public Usuario createOrUpdateUsuario(Usuario usuario) {
-        if (usuario.getId() == 0) {
-            return createUsuario(usuario);
-        }
-        return updateUsuario(usuario);
     }
 }

@@ -49,15 +49,15 @@ public class DireccionController {
 
     // Actualizar dirección (solo si pertenece al usuario)
     @PutMapping("/{id}")
-    public ResponseEntity<Direccion> actualizarDireccion(@PathVariable int id, @RequestBody Direccion direccion) {
+    public ResponseEntity<Direccion> actualizarDireccion(@PathVariable Long id, @RequestBody Direccion direccion) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         Optional<Usuario> usuarioOpt = usuarioService.getUsuarioByUsername(username);
         if (!usuarioOpt.isPresent()) return ResponseEntity.status(401).build();
         Optional<Direccion> dirOpt = direccionService.getDireccionById(id);
-        if (!dirOpt.isPresent() || dirOpt.get().getUsuario().getId() != usuarioOpt.get().getId())
+        if (!dirOpt.isPresent() || !dirOpt.get().getUsuario().getId().equals(usuarioOpt.get().getId()))
             return ResponseEntity.status(403).build();
-        direccion.setId(id);
+        direccion.setId(id);   // ahora Long
         direccion.setUsuario(usuarioOpt.get());
         Direccion actualizada = direccionService.saveDireccion(direccion);
         return ResponseEntity.ok(actualizada);
@@ -65,13 +65,13 @@ public class DireccionController {
 
     // Eliminar dirección (solo si pertenece al usuario)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarDireccion(@PathVariable int id) {
+    public ResponseEntity<Void> eliminarDireccion(@PathVariable Long id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         Optional<Usuario> usuarioOpt = usuarioService.getUsuarioByUsername(username);
         if (!usuarioOpt.isPresent()) return ResponseEntity.status(401).build();
         Optional<Direccion> dirOpt = direccionService.getDireccionById(id);
-        if (!dirOpt.isPresent() || dirOpt.get().getUsuario().getId() != usuarioOpt.get().getId())
+        if (!dirOpt.isPresent() || !dirOpt.get().getUsuario().getId().equals(usuarioOpt.get().getId()))
             return ResponseEntity.status(403).build();
         direccionService.deleteDireccion(id);
         return ResponseEntity.noContent().build();

@@ -16,8 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -25,33 +23,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UsuarioService usuarioService;
 
-    // Prefijos públicos (no requieren auth)
-    private static final List<String> WHITELIST_PREFIXES = List.of(
-            "/swagger-ui/",
-            "/v3/api-docs/"
-    );
-
-    // Rutas exactas públicas
-    private static final Set<String> WHITELIST_EXACT = Set.of(
-            "/swagger-ui.html",
-            "/v3/api-docs",
-            "/usuarios/login",
-            "/usuarios",
-            "/producto",
-            "/producto/catalogo",
-            "/error"
-    );
-
     public JwtRequestFilter(JwtUtil jwtUtil, UsuarioService usuarioService) {
         this.jwtUtil = jwtUtil;
         this.usuarioService = usuarioService;
-    }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        if (WHITELIST_EXACT.contains(path)) return true;
-        return WHITELIST_PREFIXES.stream().anyMatch(path::startsWith);
     }
 
     @Override
@@ -61,6 +35,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             FilterChain chain
     ) throws ServletException, IOException {
 
+        String path = request.getServletPath();
+        if (path.startsWith("/usuarios/login") || path.startsWith("/usuarios/registro")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
@@ -69,9 +49,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             token = authHeader.substring(7);
             try {
                 username = jwtUtil.extractUsername(token);
-            } catch (Exception ignored) {
-                // token inválido o malformado; dejamos que siga sin auth
-            }
+            } catch (Exception ignored) {}
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -80,11 +58,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             if (usuarioOpt.isPresent() && jwtUtil.isTokenValid(token, username)) {
                 Usuario u = usuarioOpt.get();
 
-                String rol = (u.getRol() == null || u.getRol().isBlank())
-                        ? "ROLE_USER"
-                        : (u.getRol().startsWith("ROLE_") ? u.getRol() : "ROLE_" + u.getRol().toUpperCase());
-
-                var authorities = Collections.singletonList(new SimpleGrantedAuthority(rol));
+                var authorities = Collections.singletonList(new SimpleGrantedAuthority(u.getRol().name()));
 
                 var principal = new User(u.getUsername(), u.getPassword(), authorities);
                 var authToken = new UsernamePasswordAuthenticationToken(principal, null, authorities);

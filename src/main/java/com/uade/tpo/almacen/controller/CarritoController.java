@@ -36,7 +36,7 @@ public class CarritoController {
     @PostMapping
     public ResponseEntity<CarritoResponse> crearCarrito(Principal principal) {
         Usuario usuario = getUsuarioDesdePrincipal(principal);
-        Carrito carrito = carritoService.obtenerOCrearCarrito(usuario.getId()); // ✅ usa tu firma real
+        Carrito carrito = carritoService.obtenerOCrearCarrito(usuario.getId()); 
         return ResponseEntity
                 .created(URI.create("/carritos/" + carrito.getId()))
                 .body(carritoMapper.toResponse(carrito));
@@ -45,37 +45,36 @@ public class CarritoController {
     @GetMapping
     public ResponseEntity<CarritoResponse> obtenerCarrito(Principal principal) {
         Usuario usuario = getUsuarioDesdePrincipal(principal);
-        Carrito carrito = carritoService.obtenerOCrearCarrito(usuario.getId()); // ✅
+        Carrito carrito = carritoService.obtenerOCrearCarrito(usuario.getId()); 
         return ResponseEntity.ok(carritoMapper.toResponse(carrito));
     }
 
     @PatchMapping("/productos/{productoId}")
     public ResponseEntity<CarritoResponse> agregarProducto(
             Principal principal,
-            @PathVariable int productoId,
+            @PathVariable Long productoId,   // ⬅️ cambiado a Long
             @RequestParam(defaultValue = "1") @Min(1) int cantidad) {
         Usuario usuario = getUsuarioDesdePrincipal(principal);
-        Carrito carritoActualizado = carritoService.agregarItem(usuario.getId(), productoId, cantidad); // ✅
+        Carrito carritoActualizado = carritoService.agregarItem(usuario.getId(), productoId, cantidad); 
         return ResponseEntity.ok(carritoMapper.toResponse(carritoActualizado));
     }
 
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<CarritoResponse> quitarItem(
             Principal principal,
-            @PathVariable int itemId) {
+            @PathVariable Long itemId) {   // ⬅️ cambiado a Long
         Usuario usuario = getUsuarioDesdePrincipal(principal);
-        Carrito carritoActualizado = carritoService.quitarItem(usuario.getId(), itemId); // ✅
+        Carrito carritoActualizado = carritoService.quitarItem(usuario.getId(), itemId); 
         return ResponseEntity.ok(carritoMapper.toResponse(carritoActualizado));
     }
 
     @DeleteMapping
     public ResponseEntity<CarritoResponse> vaciarCarrito(Principal principal) {
         Usuario usuario = getUsuarioDesdePrincipal(principal);
-        carritoService.vaciarCarrito(usuario.getId()); // ✅ void
-        Carrito carritoActual = carritoService.obtenerOCrearCarrito(usuario.getId()); // ✅ leo para responder
+        carritoService.vaciarCarrito(usuario.getId()); 
+        Carrito carritoActual = carritoService.obtenerOCrearCarrito(usuario.getId()); 
         return ResponseEntity.ok(carritoMapper.toResponse(carritoActual));
     }
-
 
     private Usuario getUsuarioDesdePrincipal(Principal principal) {
         if (principal == null) throw new NoEncontradoException("Sesión no válida o no autenticada");

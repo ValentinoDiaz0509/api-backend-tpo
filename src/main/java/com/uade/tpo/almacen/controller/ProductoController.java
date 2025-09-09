@@ -38,7 +38,7 @@ public class ProductoController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String marca,
-            @RequestParam(required = false) Integer categoriaId,
+            @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) BigDecimal precioMin,
             @RequestParam(required = false) BigDecimal precioMax) throws ProductoNotFoundException {
 
@@ -49,7 +49,8 @@ public class ProductoController {
         }
 
         Page<Producto> productos = productoService.filtrarProductos(
-                nombre, marca, categoriaId, precioMin, precioMax, PageRequest.of(pageNum, pageSize));
+                nombre, marca, (categoriaId != null ? categoriaId.intValue() : null),
+                precioMin, precioMax, PageRequest.of(pageNum, pageSize));
 
         var list = productos.stream()
                 .filter(p -> p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado()))
@@ -65,7 +66,7 @@ public class ProductoController {
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<ProductoDTO> getProductoById(@PathVariable int id) throws ProductoNotFoundException {
+    public ResponseEntity<ProductoDTO> getProductoById(@PathVariable Long id) throws ProductoNotFoundException {
         if (id < 1) {
             throw new ParametroFueraDeRangoException("El id del producto debe ser mayor a 0");
         }
@@ -77,6 +78,25 @@ public class ProductoController {
             }
         }
         throw new ProductoNotFoundException("No se encontró el producto con id: " + id);
+    }
+
+    @GetMapping("/categoria/{categoriaId}")
+    public ResponseEntity<ProductoDTO> getProductoByCategory(@PathVariable Long categoriaId)
+            throws ProductoNotFoundException {
+        if (categoriaId < 1) {
+            throw new ParametroFueraDeRangoException("El id de la categoría debe ser mayor a 0");
+        }
+        Optional<Categoria> categoriaOptional = categorias.getCategoriaById(categoriaId);
+        if (categoriaOptional.isPresent()) {
+            Optional<Producto> producto = productoService.getProductoByCategory(categoriaOptional.get());
+            if (producto.isPresent()) {
+                Producto p = producto.get();
+                if (p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado())) {
+                    return ResponseEntity.ok(new ProductoDTO(p));
+                }
+            }
+        }
+        throw new ProductoNotFoundException("No se encontró el producto con categoría: " + categoriaId);
     }
 
     @GetMapping("/nombre/{nombreProducto}")
@@ -95,25 +115,6 @@ public class ProductoController {
         throw new ProductoNotFoundException("No se encontró el producto con nombre: " + nombreProducto);
     }
 
-    @GetMapping("/categoria/{categoriaId}")
-    public ResponseEntity<ProductoDTO> getProductoByCategory(@PathVariable int categoriaId)
-            throws ProductoNotFoundException {
-        if (categoriaId < 1) {
-            throw new ParametroFueraDeRangoException("El id de la categoría debe ser mayor a 0");
-        }
-        Optional<Categoria> categoriaOptional = categorias.getCategoriaById(categoriaId);
-        if (categoriaOptional.isPresent()) {
-            Optional<Producto> producto = productoService.getProductoByCategory(categoriaOptional.get());
-            if (producto.isPresent()) {
-                Producto p = producto.get();
-                if (p.getStock() > p.getStockMinimo() && "activo".equalsIgnoreCase(p.getEstado())) {
-                    return ResponseEntity.ok(new ProductoDTO(p));
-                }
-            }
-        }
-        throw new ProductoNotFoundException("No se encontró el producto con categoría: " + categoriaId);
-    }
-
     @GetMapping("/marca/{marca}")
     public ResponseEntity<ProductoDTO> getProductoByMarca(@PathVariable String marca)
             throws ProductoNotFoundException {
@@ -130,7 +131,6 @@ public class ProductoController {
         throw new ProductoNotFoundException("No se encontró el producto con marca: " + marca);
     }
 
-    // Versión con query params: /producto/precio?precioMax=...&precioMin=...
     @GetMapping("/precio")
     public ResponseEntity<ProductoDTO> getProductoByPrecio(
             @RequestParam(required = false) BigDecimal precioMax,
@@ -166,7 +166,7 @@ public class ProductoController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String marca,
-            @RequestParam(required = false) Integer categoriaId,
+            @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) BigDecimal precioMin,
             @RequestParam(required = false) BigDecimal precioMax) throws ProductoNotFoundException {
 
@@ -177,7 +177,8 @@ public class ProductoController {
         }
 
         Page<Producto> productos = productoService.filtrarProductos(
-                nombre, marca, categoriaId, precioMin, precioMax, PageRequest.of(pageNum, pageSize));
+                nombre, marca, (categoriaId != null ? categoriaId.intValue() : null),
+                precioMin, precioMax, PageRequest.of(pageNum, pageSize));
 
         if (productos.isEmpty()) {
             throw new ProductoNotFoundException("No hay productos que coincidan con los filtros");
@@ -189,7 +190,7 @@ public class ProductoController {
                 .collect(Collectors.toList());
 
         Page<CatalogoResponse> catalogoResponse =
-                new PageImpl<>(list, productos.getPageable(), list.size()); // total consistente con el filtro
+                new PageImpl<>(list, productos.getPageable(), list.size());
 
         if (catalogoResponse.isEmpty()) {
             throw new ProductoNotFoundException("No hay productos cargados");
@@ -201,34 +202,8 @@ public class ProductoController {
     public ResponseEntity<Object> createProducto(@RequestBody ProductoRequest producto)
             throws ProductoDuplicateException, ParametroFueraDeRangoException {
 
-        if (producto.getCategoria_id() < 1) {
+        if (producto.getCategoria_id() == null || producto.getCategoria_id() < 1) {
             throw new ParametroFueraDeRangoException("El id del producto debe ser mayor a 0");
-        }
-        if (producto.getNombre() == null || producto.getNombre().isEmpty()) {
-            throw new ParametroFueraDeRangoException("El nombre del producto no puede ser nulo o vacío");
-        }
-        if (producto.getPrecio() == null || producto.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ParametroFueraDeRangoException("El precio no puede ser nulo o menor a 0");
-        }
-        if (producto.getDescripcion() == null || producto.getDescripcion().isEmpty()) {
-            throw new ParametroFueraDeRangoException("La descripción no puede ser nula o vacía");
-        }
-        if (producto.getStock() < 0) {
-            throw new ParametroFueraDeRangoException("El stock no puede ser menor a 0");
-        }
-        if (producto.getStockMinimo() < 0) {
-            throw new ParametroFueraDeRangoException("El stock mínimo no puede ser menor a 0");
-        }
-        if (producto.getDescuento() == null
-                || producto.getDescuento().compareTo(BigDecimal.ZERO) < 0
-                || producto.getDescuento().compareTo(new BigDecimal("100")) > 0) {
-            throw new ParametroFueraDeRangoException("El descuento debe estar entre 0 y 100");
-        }
-        if (producto.getVentasTotales() < 0) {
-            throw new ParametroFueraDeRangoException("Las ventas totales no pueden ser menores a 0");
-        }
-        if (producto.getImagenes().size() > 10) {
-            throw new ParametroFueraDeRangoException("No se pueden agregar más de 10 imagenes");
         }
 
         categorias.getCategoriaById(producto.getCategoria_id())
@@ -240,37 +215,11 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> updateProducto(@PathVariable int id, @RequestBody ProductoRequest productoRequest)
+    public ResponseEntity<Object> updateProducto(@PathVariable Long id, @RequestBody ProductoRequest productoRequest)
             throws ProductoNotFoundException {
 
-        if (productoRequest.getCategoria_id() < 1) {
-            throw new ParametroFueraDeRangoException("El id del producto debe ser mayor a 0");
-        }
-        if (productoRequest.getNombre() == null || productoRequest.getNombre().isEmpty()) {
-            throw new ParametroFueraDeRangoException("El nombre del producto no puede ser nulo o vacío");
-        }
-        if (productoRequest.getPrecio() == null || productoRequest.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ParametroFueraDeRangoException("El precio no puede ser nulo o menor a 0");
-        }
-        if (productoRequest.getDescripcion() == null || productoRequest.getDescripcion().isEmpty()) {
-            throw new ParametroFueraDeRangoException("La descripción no puede ser nula o vacía");
-        }
-        if (productoRequest.getStock() < 0) {
-            throw new ParametroFueraDeRangoException("El stock no puede ser menor a 0");
-        }
-        if (productoRequest.getStockMinimo() < 0) {
-            throw new ParametroFueraDeRangoException("El stock mínimo no puede ser menor a 0");
-        }
-        if (productoRequest.getDescuento() == null
-                || productoRequest.getDescuento().compareTo(BigDecimal.ZERO) < 0
-                || productoRequest.getDescuento().compareTo(new BigDecimal("100")) > 0) {
-            throw new ParametroFueraDeRangoException("El descuento debe estar entre 0 y 100");
-        }
-        if (productoRequest.getVentasTotales() < 0) {
-            throw new ParametroFueraDeRangoException("Las ventas totales no pueden ser menores a 0");
-        }
-        if (productoRequest.getImagenes().size() > 10) {
-            throw new ParametroFueraDeRangoException("No se pueden agregar más de 10 imagenes");
+        if (productoRequest.getCategoria_id() == null || productoRequest.getCategoria_id() < 1) {
+            throw new ParametroFueraDeRangoException("El id de la categoría debe ser mayor a 0");
         }
 
         categorias.getCategoriaById(productoRequest.getCategoria_id())
@@ -281,7 +230,7 @@ public class ProductoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteProducto(@PathVariable int id) throws ProductoNotFoundException {
+    public ResponseEntity<Object> deleteProducto(@PathVariable Long id) throws ProductoNotFoundException {
         if (id < 1) {
             throw new ParametroFueraDeRangoException("El id del producto debe ser mayor a 0");
         }
@@ -291,4 +240,3 @@ public class ProductoController {
         return ResponseEntity.noContent().build();
     }
 }
-

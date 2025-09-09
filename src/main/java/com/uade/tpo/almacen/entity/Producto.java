@@ -18,7 +18,7 @@ public class Producto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;   // 👈 CAMBIO: era int
 
     @Column(nullable = false)
     private String nombre;

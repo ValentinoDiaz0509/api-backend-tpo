@@ -15,7 +15,7 @@ import lombok.*;
 public class DetalleOrden {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
 
     @Column(nullable = false)
     private int cantidad;
@@ -45,3 +45,4 @@ public class DetalleOrden {
         this.subtotal = this.precioUnitario.multiply(BigDecimal.valueOf(this.cantidad));
     }
 }
+

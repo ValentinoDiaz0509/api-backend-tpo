@@ -2,10 +2,7 @@ package com.uade.tpo.almacen.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.uade.tpo.almacen.entity.Orden;
 import com.uade.tpo.almacen.entity.Usuario;
@@ -14,15 +11,13 @@ import com.uade.tpo.almacen.excepciones.NoEncontradoException;
 import com.uade.tpo.almacen.service.OrdenService;
 import com.uade.tpo.almacen.service.UsuarioService;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
 import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("ordenes")
+@RequestMapping("/ordenes")
 public class OrdenController {
+
     @Autowired
     private OrdenService ordenService;
 
@@ -31,7 +26,7 @@ public class OrdenController {
 
     // DTO para finalizar compra
     public static class FinalizarCompraRequest {
-        public Integer direccionId; // null para retiro en tienda
+        public Long direccionId; // null para retiro en tienda
     }
 
     // POST para finalizar compra
@@ -49,7 +44,7 @@ public class OrdenController {
 
     // GET una orden por id
     @GetMapping("/{ordenId}/usuarios/{id}")
-    public ResponseEntity<OrdenResponseDTO> obtenerOrden(@PathVariable int id, @PathVariable int ordenId) {
+    public ResponseEntity<OrdenResponseDTO> obtenerOrden(@PathVariable Long id, @PathVariable Long ordenId) {
         Orden orden = ordenService.obtenerOrden(id, ordenId);
         OrdenResponseDTO dto = ordenService.convertirAOrdenResponse(orden);
         return ResponseEntity.ok(dto);
@@ -57,7 +52,7 @@ public class OrdenController {
 
     // GET historial de ordenes por usuario
     @GetMapping("/usuarios/{id}")
-    public ResponseEntity<List<OrdenResponseDTO>> obtenerOrdenes(@PathVariable int id) {
+    public ResponseEntity<List<OrdenResponseDTO>> obtenerOrdenes(@PathVariable Long id) {
         List<Orden> ordenes = ordenService.obtenerOrdenes(id);
         List<OrdenResponseDTO> dtos = ordenes.stream()
                 .map(ordenService::convertirAOrdenResponse)
@@ -65,4 +60,3 @@ public class OrdenController {
         return ResponseEntity.ok(dtos);
     }
 }
-

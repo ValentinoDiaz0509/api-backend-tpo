@@ -38,13 +38,13 @@ public class CarritoMapper {
                 carrito.getId(),
                 estado,
                 items,
-                total.doubleValue() // tu DTO usa double
+                total
         );
     }
 
     private ItemCarritoDTO toItemDto(ItemCarrito item) {
         if (item == null) {
-            return new ItemCarritoDTO(0, null, 0, BigDecimal.ZERO, BigDecimal.ZERO);
+            return new ItemCarritoDTO(0L, 0L, null, 0, BigDecimal.ZERO, BigDecimal.ZERO);
         }
 
         int cantidad = Math.max(0, item.getCantidad());
@@ -52,10 +52,11 @@ public class CarritoMapper {
         BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
 
         Producto prod = item.getProducto();
-        int productoId = (prod != null) ? prod.getId() : 0;
+        Long productoId = (prod != null) ? prod.getId() : null;
         String nombreProducto = (prod != null) ? prod.getNombre() : null;
 
         return new ItemCarritoDTO(
+                item.getId(),       // 👈 ahora devuelve también el id del item
                 productoId,
                 nombreProducto,
                 cantidad,

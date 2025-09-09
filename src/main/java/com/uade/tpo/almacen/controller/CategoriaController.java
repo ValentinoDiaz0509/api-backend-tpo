@@ -7,10 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.uade.tpo.almacen.entity.Categoria;
-import com.uade.tpo.almacen.controller.dto.CategoriaResponse; // ✅ DTO correcto
+import com.uade.tpo.almacen.controller.dto.CategoriaResponse;
 import com.uade.tpo.almacen.excepciones.NoEncontradoException;
 import com.uade.tpo.almacen.excepciones.ParametroFueraDeRangoException;
 import com.uade.tpo.almacen.service.CategoriaService;
+import com.uade.tpo.almacen.entity.dto.CategoryRequest;
 
 import java.net.URI;
 import java.util.List;
@@ -53,7 +54,7 @@ public class CategoriaController {
     }
 
     @GetMapping("/{categoriaID}")
-    public ResponseEntity<CategoriaResponse> getCategoriaById(@PathVariable int categoriaID) {
+    public ResponseEntity<CategoriaResponse> getCategoriaById(@PathVariable Long categoriaID) {
         Optional<Categoria> result = categoriaService.getCategoriaById(categoriaID);
         if (result.isEmpty()) {
             throw new NoEncontradoException("La categoría con ID " + categoriaID + " no se encuentra.");
@@ -62,8 +63,7 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createCategory(
-            @RequestBody com.uade.tpo.almacen.entity.dto.CategoryRequest categoryRequest) {
+    public ResponseEntity<Object> createCategory(@RequestBody CategoryRequest categoryRequest) {
 
         if (categoryRequest.getNombre() == null || categoryRequest.getNombre().trim().isEmpty()) {
             throw new ParametroFueraDeRangoException("El nombre de la categoría no puede estar vacío.");
@@ -73,7 +73,7 @@ public class CategoriaController {
         }
 
         Categoria newCategory = categoriaService.createCategory(categoryRequest);
-        return ResponseEntity.created(URI.create("/categories/" + newCategory.getId())).body(newCategory);
+        return ResponseEntity.created(URI.create("/categorias/" + newCategory.getId())).body(newCategory);
     }
 
     @DeleteMapping
@@ -86,7 +86,7 @@ public class CategoriaController {
     }
 
     @DeleteMapping("/{categoriaID}")
-    public ResponseEntity<String> deleteCategoryById(@PathVariable int categoriaID) {
+    public ResponseEntity<String> deleteCategoryById(@PathVariable Long categoriaID) {
         Optional<Categoria> categoria = categoriaService.getCategoriaById(categoriaID);
         if (categoria.isEmpty()) {
             throw new NoEncontradoException("La categoría con ID " + categoriaID + " no se encuentra.");
@@ -96,8 +96,10 @@ public class CategoriaController {
     }
 
     @PutMapping("/{categoriaID}")
-    public ResponseEntity<Categoria> updateCategory(@PathVariable int categoriaID,
-            @RequestBody com.uade.tpo.almacen.entity.dto.CategoryRequest categoryRequest) {
+    public ResponseEntity<Categoria> updateCategory(
+            @PathVariable Long categoriaID,
+            @RequestBody CategoryRequest categoryRequest) {
+
         Categoria updatedCategory = categoriaService.updateCategory(categoriaID, categoryRequest);
         return ResponseEntity.ok(updatedCategory);
     }
@@ -111,7 +113,7 @@ public class CategoriaController {
                 : categoria.getSubcategorias()
                            .stream()
                            .map(this::convertToCategoriaResponse)
-                           .collect(Collectors.toList()); // evita .toList() si usás Java 8
+                           .collect(Collectors.toList());
 
         return new CategoriaResponse(
                 categoria.getId(),

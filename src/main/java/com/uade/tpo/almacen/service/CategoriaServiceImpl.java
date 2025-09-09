@@ -19,14 +19,13 @@ public class CategoriaServiceImpl implements CategoriaService {
         this.repo = repo;
     }
 
-
     @Override
     public Page<Categoria> getCategorias(Pageable pageable) {
         return repo.findAll(pageable);
     }
 
     @Override
-    public Optional<Categoria> getCategoriaById(int id) {
+    public Optional<Categoria> getCategoriaById(Long id) {
         return repo.findById(id);
     }
 
@@ -34,7 +33,6 @@ public class CategoriaServiceImpl implements CategoriaService {
     public long countCategorias() {
         return repo.count();
     }
-
 
     @Override
     @Transactional
@@ -49,10 +47,12 @@ public class CategoriaServiceImpl implements CategoriaService {
         cat.setNombre(req.getNombre());
 
         if (req.getParentId() != null) {
-            Categoria parent = repo.findById(req.getParentId())
+            Categoria parent = repo.findById(req.getParentId().longValue())
                     .orElseThrow(() -> new IllegalArgumentException("Categoría padre no encontrada: " + req.getParentId()));
             cat.setParentCategoria(parent);
-            if (parent.getSubcategorias() != null) {
+
+            // asegurar que la lista de subcategorías no sea null
+            if (parent.getSubcategorias() != null && !parent.getSubcategorias().contains(cat)) {
                 parent.getSubcategorias().add(cat);
             }
         }
@@ -62,7 +62,7 @@ public class CategoriaServiceImpl implements CategoriaService {
 
     @Override
     @Transactional
-    public void deleteCategory(int id) {
+    public void deleteCategory(Long id) {
         if (!repo.existsById(id)) {
             throw new IllegalArgumentException("Categoría no encontrada: " + id);
         }
@@ -71,7 +71,7 @@ public class CategoriaServiceImpl implements CategoriaService {
 
     @Override
     @Transactional
-    public Categoria updateCategory(int id, CategoryRequest req) {
+    public Categoria updateCategory(Long id, CategoryRequest req) {
         Categoria cat = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada: " + id));
 
@@ -80,9 +80,10 @@ public class CategoriaServiceImpl implements CategoriaService {
         }
 
         if (req.getParentId() != null) {
-            Categoria parent = repo.findById(req.getParentId())
+            Categoria parent = repo.findById(req.getParentId().longValue())
                     .orElseThrow(() -> new IllegalArgumentException("Categoría padre no encontrada: " + req.getParentId()));
             cat.setParentCategoria(parent);
+
             if (parent.getSubcategorias() != null && !parent.getSubcategorias().contains(cat)) {
                 parent.getSubcategorias().add(cat);
             }
@@ -93,4 +94,4 @@ public class CategoriaServiceImpl implements CategoriaService {
         return repo.save(cat);
     }
 }
-¿
+

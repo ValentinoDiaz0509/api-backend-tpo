@@ -9,9 +9,10 @@ import lombok.Data;
 @Data
 @Entity
 public class Carrito {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
@@ -30,13 +31,11 @@ public class Carrito {
     @OneToMany(mappedBy = "carrito", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ItemCarrito> itemsCarrito = new ArrayList<>();
 
-    //  asegura que fechaCreacion siempre se setee al persistir
     @PrePersist
     public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
     }
 
-   
     public void agregarItem(ItemCarrito item) {
         itemsCarrito.add(item);
         item.setCarrito(this);
@@ -46,7 +45,6 @@ public class Carrito {
         }
     }
 
-    
     public void vaciar() {
         itemsCarrito.clear();
         estado = EstadoCarrito.VACIO;
